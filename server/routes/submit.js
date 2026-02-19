@@ -3,8 +3,6 @@ import db from '../db.js';
 
 const router = Router();
 
-//meow 
-
 const BASE_URL = 'https://patronsshow.theartleague.org';
 
 function sendEvent(res, data) {
