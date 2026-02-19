@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import db from '../db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PHOTOS_DIR = resolve(__dirname, '..', '..', 'photos');
+const PROJECT_ROOT = resolve(__dirname, '..', '..');
 
 const router = Router();
 
@@ -38,8 +38,8 @@ router.get('/', (req, res) => {
   }
 
   if (search) {
-    where.push('filename LIKE ?');
-    params.push(`%${search}%`);
+    where.push('(number LIKE ? OR artist LIKE ? OR title LIKE ? OR medium LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
 
   if (hideClaimed === '1') {
@@ -70,7 +70,7 @@ router.get('/', (req, res) => {
       CASE WHEN tag IS NULL THEN 1 ELSE 0 END,
       CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 ELSE 5 END,
       group_position,
-      filename
+      CAST(number AS INTEGER)
   `;
 
   const photos = db.prepare(sql).all(...params);
@@ -196,7 +196,7 @@ router.get('/:id/full', (req, res) => {
   const photo = db.prepare('SELECT filename FROM photos WHERE id = ?').get(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
-  res.sendFile(resolve(PHOTOS_DIR, photo.filename));
+  res.sendFile(resolve(PROJECT_ROOT, photo.filename));
 });
 
 export default router;

@@ -37,7 +37,7 @@ export default function PhotoCard({
     >
       <div className="photo-card-image" onClick={() => setSelectedPhoto(photo)}>
         <img
-          src={thumbnailUrl(photo.filename)}
+          src={thumbnailUrl(photo.flickr_id)}
           alt={photo.title}
           loading="lazy"
         />

@@ -37,8 +37,8 @@ export async function triggerScan() {
   return res.json();
 }
 
-export function thumbnailUrl(filename) {
-  return `/thumbnails/${encodeURIComponent(filename)}`;
+export function thumbnailUrl(flickrId) {
+  return `/thumbnails/${encodeURIComponent(flickrId)}.jpg`;
 }
 
 export function fullImageUrl(id) {

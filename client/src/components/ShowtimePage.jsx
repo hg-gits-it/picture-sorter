@@ -168,7 +168,7 @@ export default function ShowtimePage() {
               <span className="showtime-row-number">#{photo.number}</span>
               <img
                 className="showtime-thumb"
-                src={thumbnailUrl(photo.filename)}
+                src={thumbnailUrl(photo.flickr_id)}
                 alt={photo.title}
               />
               {photo.tag && (
@@ -192,7 +192,7 @@ export default function ShowtimePage() {
                 <span className="showtime-row-number">#{photo.number}</span>
                 <img
                   className="showtime-thumb"
-                  src={thumbnailUrl(photo.filename)}
+                  src={thumbnailUrl(photo.flickr_id)}
                   alt={photo.title}
                 />
                 {photo.tag && (
