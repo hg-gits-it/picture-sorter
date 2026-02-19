@@ -14,7 +14,7 @@ function AppContent() {
   const likePhotos = photos.filter((p) => p.tag === "like");
   const mehPhotos = photos.filter((p) => p.tag === "meh");
   const taxDeductionPhotos = photos.filter((p) => p.tag === "tax_deduction");
-  const unratedPhotos = photos.filter((p) => p.tag === null);
+  const unratedPhotos = photos.filter((p) => p.tag === "unrated");
 
   // When a specific tag filter is active, show as flat grid
   const showGrouped = !filterTag || filterTag === null;

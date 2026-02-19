@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
   const photos = db.prepare(`
     SELECT *,
       (SELECT COUNT(*) FROM photos p2
-       WHERE p2.tag IS NOT NULL
+       WHERE p2.tag != 'unrated'
          AND p2.group_position IS NOT NULL
          AND (
            CASE p2.tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
          )
       ) + group_position as global_rank
     FROM photos
-    WHERE tag IS NOT NULL AND group_position IS NOT NULL
+    WHERE tag != 'unrated' AND group_position IS NOT NULL
     ORDER BY
       taken,
       CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END,
@@ -32,7 +32,7 @@ router.patch('/:id/take', (req, res) => {
 
   const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
-  if (!photo.tag) return res.status(400).json({ error: 'Photo is not tagged' });
+  if (photo.tag === 'unrated') return res.status(400).json({ error: 'Photo is not tagged' });
   if (photo.taken) return res.status(400).json({ error: 'Photo is already taken' });
 
   db.prepare('UPDATE photos SET taken = 1 WHERE id = ?').run(id);

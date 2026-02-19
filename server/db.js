@@ -18,26 +18,26 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS photos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filename TEXT UNIQUE NOT NULL,
-    tag TEXT CHECK(tag IN ('love','like','meh','tax_deduction')) DEFAULT NULL,
+    tag TEXT CHECK(tag IN ('love','like','meh','tax_deduction','unrated')) DEFAULT 'unrated',
     group_position INTEGER DEFAULT NULL,
     created_at TEXT DEFAULT (datetime('now'))
   )
 `);
 
-// Migrate: if existing table has old CHECK constraint without 'tax_deduction', recreate it
+// Migrate: if existing table has old CHECK constraint, recreate with current schema
 const tableInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
-if (tableInfo && (!tableInfo.sql.includes('tax_deduction') || tableInfo.sql.includes("'hate'"))) {
+if (tableInfo && (!tableInfo.sql.includes("'unrated'") || tableInfo.sql.includes("'hate'"))) {
   db.exec(`
     ALTER TABLE photos RENAME TO photos_old;
     CREATE TABLE photos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       filename TEXT UNIQUE NOT NULL,
-      tag TEXT CHECK(tag IN ('love','like','meh','tax_deduction')) DEFAULT NULL,
+      tag TEXT CHECK(tag IN ('love','like','meh','tax_deduction','unrated')) DEFAULT 'unrated',
       group_position INTEGER DEFAULT NULL,
       created_at TEXT DEFAULT (datetime('now'))
     );
     INSERT INTO photos SELECT id, filename,
-      CASE WHEN tag = 'hate' THEN 'meh' ELSE tag END,
+      CASE WHEN tag = 'hate' THEN 'meh' WHEN tag IS NULL THEN 'unrated' ELSE tag END,
       group_position, created_at FROM photos_old;
     DROP TABLE photos_old;
   `);
@@ -59,6 +59,9 @@ if (tableInfo3 && !tableInfo3.sql.includes('artist')) {
   db.exec(`ALTER TABLE photos ADD COLUMN dimensions TEXT`);
   db.exec(`ALTER TABLE photos ADD COLUMN flickr_id TEXT`);
 }
+
+// Migrate: convert any remaining NULL tags to 'unrated'
+db.exec(`UPDATE photos SET tag = 'unrated' WHERE tag IS NULL`);
 
 // Migrate: if filenames use old format (contain '--'), wipe all rows to force re-scan
 const oldFormatRow = db.prepare("SELECT id FROM photos WHERE filename LIKE '%--%.%' LIMIT 1").get();

@@ -15,7 +15,7 @@ export default function PhotoCard({
 
   const handleTag = (tag) => {
     if (photo.tag === tag) {
-      tagPhoto(photo.id, null);
+      tagPhoto(photo.id, "unrated");
     } else {
       tagPhoto(photo.id, tag);
     }
@@ -63,7 +63,7 @@ export default function PhotoCard({
             )}
           </span>
         </div>
-        {photo.tag != null &&
+        {photo.tag !== "unrated" &&
           photo.group_position != null &&
           (editing ? (
             <input

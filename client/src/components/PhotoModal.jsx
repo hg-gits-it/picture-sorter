@@ -21,7 +21,7 @@ export default function PhotoModal() {
   const handleTag = useCallback(
     (tag) => {
       if (!currentPhoto) return;
-      tagPhoto(currentPhoto.id, currentPhoto.tag === tag ? null : tag);
+      tagPhoto(currentPhoto.id, currentPhoto.tag === tag ? "unrated" : tag);
     },
     [currentPhoto, tagPhoto],
   );
