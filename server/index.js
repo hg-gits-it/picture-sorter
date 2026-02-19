@@ -9,7 +9,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const THUMBNAILS_DIR = resolve(__dirname, '..', 'data', 'thumbnails');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+const CLIENT_DIST = resolve(__dirname, '..', 'client', 'dist');
 
 app.use(cors());
 app.use(express.json());
@@ -29,6 +30,12 @@ app.post('/api/scan', async (req, res) => {
     console.error('Scan failed:', err);
     res.status(500).json({ error: 'Scan failed' });
   }
+});
+
+// Serve built frontend
+app.use(express.static(CLIENT_DIST));
+app.get('*', (req, res) => {
+  res.sendFile(resolve(CLIENT_DIST, 'index.html'));
 });
 
 // Auto-scan on startup

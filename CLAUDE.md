@@ -5,15 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ```bash
-npm run dev          # Start both server and client concurrently
+npm run dev          # Start both server and client concurrently (dev mode)
+npm run build        # Build client into client/dist/
+npm start            # Start production server (serves API + built frontend on port 3001)
 npm run server       # Start Express server only (port 3001)
 npm run client       # Start Vite dev server only (port 5173)
-```
-
-Client-only commands (run from `client/`):
-```bash
-npm run build        # Production build
-npm run preview      # Preview production build
 ```
 
 No test runner or linter is configured.
@@ -22,9 +18,9 @@ No test runner or linter is configured.
 
 Full-stack photo sorting app: Express backend + React frontend with SQLite storage.
 
-**Server (port 3001):** Express with ES modules, better-sqlite3 for database, Sharp for thumbnail generation. Scans `photos/` directory for JPEGs on startup and via `POST /api/scan`. Generates 300x300 thumbnails into `data/thumbnails/`.
+**Server (port 3001):** Express with ES modules, better-sqlite3 for database, Sharp for thumbnail generation. Scans `photos/` directory for JPEGs on startup and via `POST /api/scan`. Generates 300x300 thumbnails into `data/thumbnails/`. In production, also serves the built frontend from `client/dist/`.
 
-**Client (port 5173):** React 18 + Vite. Proxies `/api` and `/thumbnails` to the backend. State managed via React Context + useReducer in `PhotoContext.jsx`. HTML5 drag-and-drop for reordering (no external library).
+**Client (port 5173 in dev):** React 18 + Vite. In dev mode, proxies `/api` and `/thumbnails` to the backend. In production, built into `client/dist/` and served by Express. State managed via React Context + useReducer in `PhotoContext.jsx`. HTML5 drag-and-drop for reordering (no external library).
 
 **API endpoints:**
 - `GET /api/photos?tag=&search=` — list with computed global rank and count badges
