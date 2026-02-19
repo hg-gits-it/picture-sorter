@@ -1,13 +1,26 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { fetchShowtimePhotos, takePhoto, restorePhoto, thumbnailUrl, fullImageUrl } from '../api/photos.js';
-import { parseFilename } from '../utils/parseFilename.js';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import {
+  fetchShowtimePhotos,
+  takePhoto,
+  restorePhoto,
+  thumbnailUrl,
+  fullImageUrl,
+} from "../api/photos.js";
+import { parseFilename } from "../utils/parseFilename.js";
 
 export default function ShowtimePage() {
   const [photos, setPhotos] = useState([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [confirmPhoto, setConfirmPhoto] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const takenRef = useRef(null);
 
   const loadPhotos = useCallback(async () => {
@@ -15,23 +28,28 @@ export default function ShowtimePage() {
       const data = await fetchShowtimePhotos();
       setPhotos(data.photos);
     } catch (err) {
-      setError('Failed to load photos');
+      setError("Failed to load photos");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadPhotos(); }, [loadPhotos]);
+  useEffect(() => {
+    loadPhotos();
+  }, [loadPhotos]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const availablePhotos = useMemo(
-    () => photos.filter(p => !p.taken),
-    [photos]
+    () => photos.filter((p) => !p.taken),
+    [photos],
   );
 
-  const takenPhotos = useMemo(
-    () => photos.filter(p => p.taken),
-    [photos]
-  );
+  const takenPhotos = useMemo(() => photos.filter((p) => p.taken), [photos]);
 
   const photoByNumber = useMemo(() => {
     const map = {};
@@ -48,7 +66,7 @@ export default function ShowtimePage() {
 
   function handleClaim(e) {
     e.preventDefault();
-    setError('');
+    setError("");
     const num = inputValue.trim();
     if (!num) return;
 
@@ -59,20 +77,21 @@ export default function ShowtimePage() {
       setError(`No artwork found with number ${num}`);
       return;
     }
-    if (match.taken) {
-      setError(`Artwork #${num} is already taken`);
-      return;
-    }
-    setConfirmPhoto(match);
+    setConfirmPhoto({ ...match, action: match.taken ? "restore" : "claim" });
   }
 
   async function handleConfirm() {
     if (!confirmPhoto) return;
     try {
-      await takePhoto(confirmPhoto.id);
+      if (confirmPhoto.action === "restore") {
+        await restorePhoto(confirmPhoto.id);
+      } else {
+        await takePhoto(confirmPhoto.id);
+        setToast({ id: confirmPhoto.id, number: confirmPhoto.parsed.number });
+      }
       setConfirmPhoto(null);
-      setInputValue('');
-      setError('');
+      setInputValue("");
+      setError("");
       await loadPhotos();
     } catch (err) {
       setError(err.message);
@@ -82,19 +101,30 @@ export default function ShowtimePage() {
   async function handleRestore(id) {
     try {
       await restorePhoto(id);
-      setError('');
+      setError("");
       await loadPhotos();
     } catch (err) {
       setError(err.message);
     }
   }
 
+  const TAG_ICONS = {
+    love: "\u2665",
+    like: "\u261D",
+    meh: "\u261F",
+    tax_deduction: "$",
+  };
+
   function getParsed(photo) {
     return parseFilename(photo.filename);
   }
 
   if (loading) {
-    return <div className="showtime"><div className="loading">Loading...</div></div>;
+    return (
+      <div className="showtime">
+        <div className="loading">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -107,27 +137,54 @@ export default function ShowtimePage() {
             className="showtime-input"
             placeholder="Artwork #"
             value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
+            onChange={(e) => setInputValue(e.target.value)}
             autoFocus
           />
-          <button type="submit" className="showtime-claim-btn">Claim</button>
+          <button type="submit" className="showtime-claim-btn">
+            Claim
+          </button>
         </form>
       </header>
+
+      {toast && (
+        <div className="showtime-toast">
+          <span>Claimed #{toast.number}</span>
+          <button
+            className="showtime-toast-undo"
+            onClick={async () => {
+              try {
+                await restorePhoto(toast.id);
+                setToast(null);
+                setError("");
+                await loadPhotos();
+              } catch (err) {
+                setError(err.message);
+              }
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      )}
 
       {error && <div className="showtime-error">{error}</div>}
 
       <section className="showtime-list">
-        {availablePhotos.map(photo => {
+        {availablePhotos.map((photo) => {
           const p = getParsed(photo);
           return (
             <div key={photo.id} className="showtime-row">
+              <span className="showtime-row-number">#{p.number}</span>
               <img
                 className="showtime-thumb"
                 src={thumbnailUrl(photo.filename)}
                 alt={p.title}
               />
-              <span className="showtime-row-rank">#{photo.global_rank}</span>
-              <span className="showtime-row-number">{p.number}</span>
+              {photo.tag && (
+                <span className={`showtime-row-tag ${photo.tag}`}>
+                  {TAG_ICONS[photo.tag]}
+                </span>
+              )}
               <span className="showtime-row-title">{p.title}</span>
               <span className="showtime-row-artist">{p.artist}</span>
               <span className="showtime-row-medium">{p.medium}</span>
@@ -140,17 +197,21 @@ export default function ShowtimePage() {
       {takenPhotos.length > 0 && (
         <section className="showtime-taken-section" ref={takenRef}>
           <h2 className="showtime-taken-title">Taken</h2>
-          {takenPhotos.map(photo => {
+          {takenPhotos.map((photo) => {
             const p = getParsed(photo);
             return (
               <div key={photo.id} className="showtime-row taken">
+                <span className="showtime-row-number">#{p.number}</span>
                 <img
                   className="showtime-thumb"
                   src={thumbnailUrl(photo.filename)}
                   alt={p.title}
                 />
-                <span className="showtime-row-rank">#{photo.global_rank}</span>
-                <span className="showtime-row-number">{p.number}</span>
+                {photo.tag && (
+                  <span className={`showtime-row-tag ${photo.tag}`}>
+                    {TAG_ICONS[photo.tag]}
+                  </span>
+                )}
                 <span className="showtime-row-title">{p.title}</span>
                 <span className="showtime-row-artist">{p.artist}</span>
                 <span className="showtime-row-medium">{p.medium}</span>
@@ -158,7 +219,9 @@ export default function ShowtimePage() {
                 <button
                   className="showtime-restore-btn"
                   onClick={() => handleRestore(photo.id)}
-                >Restore</button>
+                >
+                  Restore
+                </button>
               </div>
             );
           })}
@@ -169,25 +232,43 @@ export default function ShowtimePage() {
         <button
           className="showtime-nav-btn"
           title="Scroll to top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >&#x2191;</button>
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          &#x2191;
+        </button>
         {takenPhotos.length > 0 && (
           <button
             className="showtime-nav-btn"
             title="Scroll to Taken"
-            onClick={() => takenRef.current?.scrollIntoView({ behavior: 'smooth' })}
-          >&#x2193;</button>
+            onClick={() =>
+              takenRef.current?.scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            &#x2193;
+          </button>
         )}
       </div>
 
       {confirmPhoto && (
         <div className="modal-overlay" onClick={() => setConfirmPhoto(null)}>
-          <div className="showtime-confirm" onClick={e => e.stopPropagation()}>
-            <img src={fullImageUrl(confirmPhoto.id)} alt={confirmPhoto.parsed.title} />
+          <div
+            className="showtime-confirm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={fullImageUrl(confirmPhoto.id)}
+              alt={confirmPhoto.parsed.title}
+            />
             <div className="showtime-confirm-info">
-              <div className="showtime-confirm-number">#{confirmPhoto.parsed.number}</div>
-              <div className="showtime-confirm-title">{confirmPhoto.parsed.title}</div>
-              <div className="showtime-confirm-artist">{confirmPhoto.parsed.artist}</div>
+              <div className="showtime-confirm-number">
+                #{confirmPhoto.parsed.number}
+              </div>
+              <div className="showtime-confirm-title">
+                {confirmPhoto.parsed.title}
+              </div>
+              <div className="showtime-confirm-artist">
+                {confirmPhoto.parsed.artist}
+              </div>
               <div className="showtime-confirm-details">
                 {confirmPhoto.parsed.medium}
                 {confirmPhoto.parsed.dimensions && (
@@ -197,11 +278,23 @@ export default function ShowtimePage() {
               </div>
             </div>
             <div className="showtime-confirm-actions">
-              <button className="showtime-cancel-btn" onClick={() => setConfirmPhoto(null)}>
+              <button
+                className="showtime-cancel-btn"
+                onClick={() => setConfirmPhoto(null)}
+              >
                 Cancel
               </button>
-              <button className="showtime-confirm-btn" onClick={handleConfirm}>
-                Confirm Claim
+              <button
+                className={
+                  confirmPhoto.action === "restore"
+                    ? "showtime-restore-confirm-btn"
+                    : "showtime-confirm-btn"
+                }
+                onClick={handleConfirm}
+              >
+                {confirmPhoto.action === "restore"
+                  ? "Restore"
+                  : "Confirm Claim"}
               </button>
             </div>
           </div>

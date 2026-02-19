@@ -5,7 +5,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #1a1a2e;
   color: #e0e0e0;
   min-height: 100vh;
@@ -120,7 +121,8 @@ body {
   margin-top: 20px;
 }
 
-.loading, .empty-state {
+.loading,
+.empty-state {
   text-align: center;
   padding: 60px 20px;
   color: #888;
@@ -180,7 +182,9 @@ body {
   background: #2d2d44;
   border-radius: 10px;
   overflow: hidden;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
 .photo-card:hover {
@@ -650,7 +654,7 @@ body {
   flex-shrink: 0;
 }
 
-.showtime-row-rank {
+.showtime-row-number {
   font-size: 0.85rem;
   font-weight: 700;
   color: #6c5ce7;
@@ -658,11 +662,27 @@ body {
   flex-shrink: 0;
 }
 
-.showtime-row-number {
-  font-size: 0.8rem;
-  color: #a0a0b8;
-  min-width: 36px;
+.showtime-row-tag {
+  font-size: 0.85rem;
   flex-shrink: 0;
+  min-width: 18px;
+  text-align: center;
+}
+
+.showtime-row-tag.love {
+  color: #e74c3c;
+}
+
+.showtime-row-tag.like {
+  color: #3498db;
+}
+
+.showtime-row-tag.meh {
+  color: #7f8c8d;
+}
+
+.showtime-row-tag.tax_deduction {
+  color: #27ae60;
 }
 
 .showtime-row-title {
@@ -820,6 +840,53 @@ body {
   background: #5a4bd1;
 }
 
+.showtime-restore-confirm-btn {
+  padding: 10px 20px;
+  background: #27ae60;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.showtime-restore-confirm-btn:hover {
+  background: #219a52;
+}
+
+/* Showtime Toast */
+.showtime-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2d2d44;
+  border: 1px solid #3d3d55;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: #e0e0e0;
+}
+
+.showtime-toast-undo {
+  padding: 4px 14px;
+  background: transparent;
+  color: #6c5ce7;
+  border: 1px solid #6c5ce7;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.showtime-toast-undo:hover {
+  background: #6c5ce7;
+  color: #fff;
+}
+
 /* Showtime Nav Arrows */
 .showtime-nav-arrows {
   position: fixed;
@@ -844,7 +911,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
