@@ -25,7 +25,7 @@ function higherGroupCount(tag) {
 
 // GET /api/photos — list photos with computed global rank
 router.get('/', (req, res) => {
-  const { tag, search } = req.query;
+  const { tag, search, hideClaimed } = req.query;
 
   let where = [];
   let params = [];
@@ -40,6 +40,10 @@ router.get('/', (req, res) => {
   if (search) {
     where.push('filename LIKE ?');
     params.push(`%${search}%`);
+  }
+
+  if (hideClaimed === '1') {
+    where.push('taken = 0');
   }
 
   const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
@@ -72,6 +76,7 @@ router.get('/', (req, res) => {
   const photos = db.prepare(sql).all(...params);
 
   // Also return counts for filter badges
+  const countsWhere = hideClaimed === '1' ? 'WHERE taken = 0' : '';
   const counts = db.prepare(`
     SELECT
       COUNT(*) as total,
@@ -80,7 +85,7 @@ router.get('/', (req, res) => {
       COALESCE(SUM(CASE WHEN tag = 'meh' THEN 1 ELSE 0 END), 0) as meh,
       COALESCE(SUM(CASE WHEN tag = 'tax_deduction' THEN 1 ELSE 0 END), 0) as tax_deduction,
       COALESCE(SUM(CASE WHEN tag IS NULL THEN 1 ELSE 0 END), 0) as unrated
-    FROM photos
+    FROM photos ${countsWhere}
   `).get();
 
   res.json({ photos, counts });
