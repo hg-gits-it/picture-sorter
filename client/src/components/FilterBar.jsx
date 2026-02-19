@@ -11,7 +11,7 @@ const FILTERS = [
 ];
 
 export default function FilterBar() {
-  const { filterTag, setFilterTag, searchQuery, setSearchQuery, counts, hideClaimed, setHideClaimed } =
+  const { filterTag, setFilterTag, searchQuery, setSearchQuery, counts, hideClaimed, setHideClaimed, sortByNumber, setSortByNumber } =
     usePhotos();
 
   const getCount = (key) => {
@@ -43,15 +43,26 @@ export default function FilterBar() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      <label className="toggle-switch" title={hideClaimed ? "Showing unclaimed only" : "Showing all pieces"}>
-        <input
-          type="checkbox"
-          checked={hideClaimed}
-          onChange={(e) => setHideClaimed(e.target.checked)}
-        />
-        <span className="toggle-slider" />
-        <span className="toggle-label">Hide claimed</span>
-      </label>
+      <div className="filter-bar-toggles">
+        <label className="toggle-switch" title={sortByNumber ? "Sorting by catalog number" : "Sorting by rank"}>
+          <input
+            type="checkbox"
+            checked={sortByNumber}
+            onChange={(e) => setSortByNumber(e.target.checked)}
+          />
+          <span className="toggle-slider" />
+          <span className="toggle-label">Sort by number</span>
+        </label>
+        <label className="toggle-switch" title={hideClaimed ? "Showing unclaimed only" : "Showing all pieces"}>
+          <input
+            type="checkbox"
+            checked={hideClaimed}
+            onChange={(e) => setHideClaimed(e.target.checked)}
+          />
+          <span className="toggle-slider" />
+          <span className="toggle-label">Hide claimed</span>
+        </label>
+      </div>
     </div>
   );
 }

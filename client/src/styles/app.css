@@ -146,6 +146,11 @@ body {
   color: #666;
 }
 
+.filter-bar-toggles {
+  display: flex;
+  gap: 20px;
+}
+
 .toggle-switch {
   display: flex;
   align-items: center;
