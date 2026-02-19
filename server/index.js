@@ -4,6 +4,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import photosRouter from './routes/photos.js';
 import submitRouter from './routes/submit.js';
+import showtimeRouter from './routes/showtime.js';
 import { scanPhotos } from './scanner.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -22,6 +23,7 @@ app.use('/thumbnails', express.static(THUMBNAILS_DIR));
 // API routes
 app.use('/api/photos', photosRouter);
 app.use('/api/submit', submitRouter);
+app.use('/api/showtime/photos', showtimeRouter);
 
 // Scan endpoint
 app.post('/api/scan', async (req, res) => {

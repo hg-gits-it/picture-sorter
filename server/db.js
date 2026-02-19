@@ -43,4 +43,10 @@ if (tableInfo && (!tableInfo.sql.includes('tax_deduction') || tableInfo.sql.incl
   `);
 }
 
+// Migrate: add 'taken' column if missing
+const tableInfo2 = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
+if (tableInfo2 && !tableInfo2.sql.includes('taken')) {
+  db.exec(`ALTER TABLE photos ADD COLUMN taken INTEGER DEFAULT 0`);
+}
+
 export default db;

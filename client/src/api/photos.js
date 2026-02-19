@@ -47,3 +47,31 @@ export function fullImageUrl(id) {
 export function submitUrl(codename) {
   return `${API_BASE}/submit?codename=${encodeURIComponent(codename)}`;
 }
+
+export async function fetchShowtimePhotos() {
+  const res = await fetch(`${API_BASE}/showtime/photos`);
+  if (!res.ok) throw new Error('Failed to fetch showtime photos');
+  return res.json();
+}
+
+export async function takePhoto(id) {
+  const res = await fetch(`${API_BASE}/showtime/photos/${id}/take`, {
+    method: 'PATCH',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to take photo');
+  }
+  return res.json();
+}
+
+export async function restorePhoto(id) {
+  const res = await fetch(`${API_BASE}/showtime/photos/${id}/restore`, {
+    method: 'PATCH',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to restore photo');
+  }
+  return res.json();
+}

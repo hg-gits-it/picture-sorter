@@ -27,8 +27,11 @@ function AppContent() {
           <button className="scan-btn" onClick={scanPhotos}>
             Scan Photos
           </button>
-          <button className="submit-btn" onClick={() => setSubmitModalOpen(true)}>
-            Submit to Patrons' Show
+          <button
+            className="submit-btn"
+            onClick={() => setSubmitModalOpen(true)}
+          >
+            Submit to Show
           </button>
         </div>
       </header>
@@ -63,7 +66,10 @@ function AppContent() {
       </main>
 
       <PhotoModal />
-      <SubmitModal open={submitModalOpen} onClose={() => setSubmitModalOpen(false)} />
+      <SubmitModal
+        open={submitModalOpen}
+        onClose={() => setSubmitModalOpen(false)}
+      />
     </div>
   );
 }
