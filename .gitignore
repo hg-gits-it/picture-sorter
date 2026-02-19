@@ -1,0 +1,6 @@
+node_modules/
+data/picture-sorter.db
+data/thumbnails/
+photos/
+.DS_Store
+dist/
