@@ -383,3 +383,174 @@ body {
 .modal-sep {
   margin: 0 6px;
 }
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.submit-btn {
+  padding: 10px 20px;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #c0392b;
+}
+
+/* Submit Modal */
+.submit-modal {
+  background: #1e1e36;
+  border-radius: 12px;
+  padding: 28px;
+  width: 480px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submit-modal-title {
+  font-size: 1.3rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.submit-modal-desc {
+  font-size: 0.9rem;
+  color: #a0a0b8;
+  line-height: 1.5;
+}
+
+.submit-modal-input {
+  padding: 10px 16px;
+  background: #2d2d44;
+  color: #e0e0e0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.submit-modal-input:focus {
+  border-color: #6c5ce7;
+}
+
+.submit-modal-input::placeholder {
+  color: #666;
+}
+
+.submit-modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.submit-modal-cancel {
+  padding: 10px 20px;
+  background: #2d2d44;
+  color: #b0b0c0;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-modal-cancel:hover {
+  background: #3d3d55;
+}
+
+.submit-modal-submit {
+  padding: 10px 20px;
+  background: #6c5ce7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-modal-submit:hover {
+  background: #5a4bd1;
+}
+
+.submit-modal-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Submit Progress */
+.submit-progress-container {
+  height: 8px;
+  background: #2d2d44;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.submit-progress-bar {
+  height: 100%;
+  background: #6c5ce7;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.submit-progress-text {
+  font-size: 0.85rem;
+  color: #a0a0b8;
+  text-align: center;
+}
+
+/* Submit Log */
+.submit-log {
+  background: #16162b;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #a0a0b8;
+  line-height: 1.6;
+  flex: 1;
+  min-height: 80px;
+}
+
+.submit-log-entry {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Submit Result */
+.submit-result-icon {
+  font-size: 3rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.submit-result-icon.done {
+  color: #27ae60;
+}
+
+.submit-result-icon.error {
+  color: #e74c3c;
+}
+
+.submit-result-message {
+  text-align: center;
+  font-size: 1rem;
+  color: #e0e0e0;
+  font-weight: 500;
+}

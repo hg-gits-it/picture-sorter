@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { PhotoProvider, usePhotos } from "./context/PhotoContext.jsx";
 import FilterBar from "./components/FilterBar.jsx";
 import TagGroup from "./components/TagGroup.jsx";
 import UnrankedSection from "./components/UnrankedSection.jsx";
 import PhotoModal from "./components/PhotoModal.jsx";
+import SubmitModal from "./components/SubmitModal.jsx";
 
 function AppContent() {
   const { photos, scanPhotos, loading, filterTag } = usePhotos();
+  const [submitModalOpen, setSubmitModalOpen] = useState(false);
 
   const lovePhotos = photos.filter((p) => p.tag === "love");
   const likePhotos = photos.filter((p) => p.tag === "like");
@@ -21,9 +23,14 @@ function AppContent() {
     <div className="app">
       <header className="app-header">
         <h1>Art Sorter</h1>
-        <button className="scan-btn" onClick={scanPhotos}>
-          Scan Photos
-        </button>
+        <div className="header-actions">
+          <button className="scan-btn" onClick={scanPhotos}>
+            Scan Photos
+          </button>
+          <button className="submit-btn" onClick={() => setSubmitModalOpen(true)}>
+            Submit to Patrons' Show
+          </button>
+        </div>
       </header>
 
       <FilterBar />
@@ -56,6 +63,7 @@ function AppContent() {
       </main>
 
       <PhotoModal />
+      <SubmitModal open={submitModalOpen} onClose={() => setSubmitModalOpen(false)} />
     </div>
   );
 }

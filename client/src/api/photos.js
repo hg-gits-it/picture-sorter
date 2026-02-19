@@ -43,3 +43,7 @@ export function thumbnailUrl(filename) {
 export function fullImageUrl(id) {
   return `${API_BASE}/photos/${id}/full`;
 }
+
+export function submitUrl(codename) {
+  return `${API_BASE}/submit?codename=${encodeURIComponent(codename)}`;
+}
