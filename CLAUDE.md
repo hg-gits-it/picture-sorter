@@ -10,9 +10,8 @@ npm run build        # Build client into client/dist/
 npm start            # Start production server (serves API + built frontend on port 3001)
 npm run server       # Start Express server only (port 3001)
 npm run client       # Start Vite dev server only (port 5173)
+npm run lint         # Run ESLint across the project
 ```
-
-No test runner or linter is configured.
 
 ## Architecture
 

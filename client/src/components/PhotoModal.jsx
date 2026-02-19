@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useCallback } from "react";
-import { usePhotos } from "../context/PhotoContext.jsx";
-import { fullImageUrl } from "../api/photos.js";
+import { useEffect, useMemo, useCallback } from 'react';
+import { usePhotos } from '../context/PhotoContext.jsx';
+import { fullImageUrl } from '../api/photos.js';
 
 export default function PhotoModal() {
   const { selectedPhoto, setSelectedPhoto, photos, tagPhoto } = usePhotos();
@@ -21,7 +21,7 @@ export default function PhotoModal() {
   const handleTag = useCallback(
     (tag) => {
       if (!currentPhoto) return;
-      tagPhoto(currentPhoto.id, currentPhoto.tag === tag ? "unrated" : tag);
+      tagPhoto(currentPhoto.id, currentPhoto.tag === tag ? 'unrated' : tag);
     },
     [currentPhoto, tagPhoto],
   );
@@ -44,13 +44,13 @@ export default function PhotoModal() {
     if (!selectedPhoto) return;
 
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") setSelectedPhoto(null);
-      if (e.key === "ArrowLeft") goToPrev();
-      if (e.key === "ArrowRight") goToNext();
+      if (e.key === 'Escape') setSelectedPhoto(null);
+      if (e.key === 'ArrowLeft') goToPrev();
+      if (e.key === 'ArrowRight') goToNext();
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhoto, setSelectedPhoto, goToPrev, goToNext]);
 
   if (!currentPhoto) return null;
@@ -72,29 +72,29 @@ export default function PhotoModal() {
         <img src={fullImageUrl(currentPhoto.id)} alt={currentPhoto.title} />
         <div className="modal-tag-actions">
           <button
-            className={`tag-btn love ${currentPhoto.tag === "love" ? "active" : ""}`}
-            onClick={() => handleTag("love")}
+            className={`tag-btn love ${currentPhoto.tag === 'love' ? 'active' : ''}`}
+            onClick={() => handleTag('love')}
             title="Love"
           >
             &#9829;
           </button>
           <button
-            className={`tag-btn like ${currentPhoto.tag === "like" ? "active" : ""}`}
-            onClick={() => handleTag("like")}
+            className={`tag-btn like ${currentPhoto.tag === 'like' ? 'active' : ''}`}
+            onClick={() => handleTag('like')}
             title="Like"
           >
             &#9757;
           </button>
           <button
-            className={`tag-btn meh ${currentPhoto.tag === "meh" ? "active" : ""}`}
-            onClick={() => handleTag("meh")}
+            className={`tag-btn meh ${currentPhoto.tag === 'meh' ? 'active' : ''}`}
+            onClick={() => handleTag('meh')}
             title="Meh"
           >
             &#9759;
           </button>
           <button
-            className={`tag-btn tax_deduction ${currentPhoto.tag === "tax_deduction" ? "active" : ""}`}
-            onClick={() => handleTag("tax_deduction")}
+            className={`tag-btn tax_deduction ${currentPhoto.tag === 'tax_deduction' ? 'active' : ''}`}
+            onClick={() => handleTag('tax_deduction')}
             title="Tax Deduction"
           >
             $

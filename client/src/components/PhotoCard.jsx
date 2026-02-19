@@ -1,6 +1,6 @@
-import React, { useState, useRef } from "react";
-import { usePhotos } from "../context/PhotoContext.jsx";
-import { thumbnailUrl } from "../api/photos.js";
+import React, { useState, useRef } from 'react';
+import { usePhotos } from '../context/PhotoContext.jsx';
+import { thumbnailUrl } from '../api/photos.js';
 
 export default function PhotoCard({
   photo,
@@ -15,7 +15,7 @@ export default function PhotoCard({
 
   const handleTag = (tag) => {
     if (photo.tag === tag) {
-      tagPhoto(photo.id, "unrated");
+      tagPhoto(photo.id, 'unrated');
     } else {
       tagPhoto(photo.id, tag);
     }
@@ -32,7 +32,7 @@ export default function PhotoCard({
 
   return (
     <div
-      className={`photo-card ${draggable ? "draggable" : ""} ${photo.taken ? "taken" : ""}`}
+      className={`photo-card ${draggable ? 'draggable' : ''} ${photo.taken ? 'taken' : ''}`}
       {...dragProps}
     >
       <div className="photo-card-image" onClick={() => setSelectedPhoto(photo)}>
@@ -63,7 +63,7 @@ export default function PhotoCard({
             )}
           </span>
         </div>
-        {photo.tag !== "unrated" &&
+        {photo.tag !== 'unrated' &&
           photo.group_position != null &&
           (editing ? (
             <input
@@ -74,9 +74,9 @@ export default function PhotoCard({
               defaultValue={photo.group_position}
               onFocus={(e) => e.target.select()}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === 'Enter') {
                   e.target.blur();
-                } else if (e.key === "Escape") {
+                } else if (e.key === 'Escape') {
                   setEditing(false);
                 }
               }}
@@ -103,29 +103,29 @@ export default function PhotoCard({
       </div>
       <div className="photo-card-actions">
         <button
-          className={`tag-btn love ${photo.tag === "love" ? "active" : ""}`}
-          onClick={() => handleTag("love")}
+          className={`tag-btn love ${photo.tag === 'love' ? 'active' : ''}`}
+          onClick={() => handleTag('love')}
           title="Love"
         >
           &#9829;
         </button>
         <button
-          className={`tag-btn like ${photo.tag === "like" ? "active" : ""}`}
-          onClick={() => handleTag("like")}
+          className={`tag-btn like ${photo.tag === 'like' ? 'active' : ''}`}
+          onClick={() => handleTag('like')}
           title="Like"
         >
           &#9757;
         </button>
         <button
-          className={`tag-btn meh ${photo.tag === "meh" ? "active" : ""}`}
-          onClick={() => handleTag("meh")}
+          className={`tag-btn meh ${photo.tag === 'meh' ? 'active' : ''}`}
+          onClick={() => handleTag('meh')}
           title="Meh"
         >
           &#9759;
         </button>
         <button
-          className={`tag-btn tax_deduction ${photo.tag === "tax_deduction" ? "active" : ""}`}
-          onClick={() => handleTag("tax_deduction")}
+          className={`tag-btn tax_deduction ${photo.tag === 'tax_deduction' ? 'active' : ''}`}
+          onClick={() => handleTag('tax_deduction')}
           title="Tax Deduction"
         >
           $

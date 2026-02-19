@@ -4,20 +4,20 @@ import React, {
   useMemo,
   useCallback,
   useRef,
-} from "react";
+} from 'react';
 import {
   fetchShowtimePhotos,
   takePhoto,
   restorePhoto,
   thumbnailUrl,
   fullImageUrl,
-} from "../api/photos.js";
+} from '../api/photos.js';
 
 export default function ShowtimePage() {
   const [photos, setPhotos] = useState([]);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [confirmPhoto, setConfirmPhoto] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const takenRef = useRef(null);
@@ -26,8 +26,8 @@ export default function ShowtimePage() {
     try {
       const data = await fetchShowtimePhotos();
       setPhotos(data.photos);
-    } catch (err) {
-      setError("Failed to load photos");
+    } catch {
+      setError('Failed to load photos');
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export default function ShowtimePage() {
 
   function handleClaim(e) {
     e.preventDefault();
-    setError("");
+    setError('');
     const num = inputValue.trim();
     if (!num) return;
 
@@ -74,21 +74,21 @@ export default function ShowtimePage() {
       setError(`No artwork found with number ${num}`);
       return;
     }
-    setConfirmPhoto({ ...match, action: match.taken ? "restore" : "claim" });
+    setConfirmPhoto({ ...match, action: match.taken ? 'restore' : 'claim' });
   }
 
   async function handleConfirm() {
     if (!confirmPhoto) return;
     try {
-      if (confirmPhoto.action === "restore") {
+      if (confirmPhoto.action === 'restore') {
         await restorePhoto(confirmPhoto.id);
       } else {
         await takePhoto(confirmPhoto.id);
         setToast({ id: confirmPhoto.id, number: confirmPhoto.number });
       }
       setConfirmPhoto(null);
-      setInputValue("");
-      setError("");
+      setInputValue('');
+      setError('');
       await loadPhotos();
     } catch (err) {
       setError(err.message);
@@ -98,7 +98,7 @@ export default function ShowtimePage() {
   async function handleRestore(id) {
     try {
       await restorePhoto(id);
-      setError("");
+      setError('');
       await loadPhotos();
     } catch (err) {
       setError(err.message);
@@ -106,10 +106,10 @@ export default function ShowtimePage() {
   }
 
   const TAG_ICONS = {
-    love: "\u2665",
-    like: "\u261D",
-    meh: "\u261F",
-    tax_deduction: "$",
+    love: '\u2665',
+    like: '\u261D',
+    meh: '\u261F',
+    tax_deduction: '$',
   };
 
   if (loading) {
@@ -148,7 +148,7 @@ export default function ShowtimePage() {
               try {
                 await restorePhoto(toast.id);
                 setToast(null);
-                setError("");
+                setError('');
                 await loadPhotos();
               } catch (err) {
                 setError(err.message);
@@ -219,7 +219,7 @@ export default function ShowtimePage() {
         <button
           className="showtime-nav-btn"
           title="Scroll to top"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           &#x2191;
         </button>
@@ -228,7 +228,7 @@ export default function ShowtimePage() {
             className="showtime-nav-btn"
             title="Scroll to Taken"
             onClick={() =>
-              takenRef.current?.scrollIntoView({ behavior: "smooth" })
+              takenRef.current?.scrollIntoView({ behavior: 'smooth' })
             }
           >
             &#x2193;
@@ -273,15 +273,15 @@ export default function ShowtimePage() {
               </button>
               <button
                 className={
-                  confirmPhoto.action === "restore"
-                    ? "showtime-restore-confirm-btn"
-                    : "showtime-confirm-btn"
+                  confirmPhoto.action === 'restore'
+                    ? 'showtime-restore-confirm-btn'
+                    : 'showtime-confirm-btn'
                 }
                 onClick={handleConfirm}
               >
-                {confirmPhoto.action === "restore"
-                  ? "Restore"
-                  : "Confirm Claim"}
+                {confirmPhoto.action === 'restore'
+                  ? 'Restore'
+                  : 'Confirm Claim'}
               </button>
             </div>
           </div>

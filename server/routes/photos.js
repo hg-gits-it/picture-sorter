@@ -1,37 +1,37 @@
-import { Router } from "express";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
-import db from "../db.js";
+import { Router } from 'express';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import db from '../db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, "..", "..");
+const PROJECT_ROOT = resolve(__dirname, '..', '..');
 
 const router = Router();
 
 // GET /api/photos — list photos with computed global rank
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
   const { tag, search, hideClaimed } = req.query;
 
   let where = [];
   let params = [];
 
   if (tag) {
-    where.push("tag = ?");
+    where.push('tag = ?');
     params.push(tag);
   }
 
   if (search) {
     where.push(
-      "(number LIKE ? OR artist LIKE ? OR title LIKE ? OR medium LIKE ?)",
+      '(number LIKE ? OR artist LIKE ? OR title LIKE ? OR medium LIKE ?)',
     );
     params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
 
-  if (hideClaimed === "1") {
-    where.push("taken = 0");
+  if (hideClaimed === '1') {
+    where.push('taken = 0');
   }
 
-  const whereClause = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+  const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
 
   // Compute global rank using window functions
   // Priority: love=1, like=2, meh=3, tax_deduction=4, null=5
@@ -61,7 +61,7 @@ router.get("/", (req, res) => {
   const photos = db.prepare(sql).all(...params);
 
   // Also return counts for filter badges
-  const countsWhere = hideClaimed === "1" ? "WHERE taken = 0" : "";
+  const countsWhere = hideClaimed === '1' ? 'WHERE taken = 0' : '';
   const counts = db
     .prepare(
       `
@@ -81,16 +81,16 @@ router.get("/", (req, res) => {
 });
 
 // PATCH /api/photos/:id/tag — set or clear tag
-router.patch("/:id/tag", (req, res) => {
+router.patch('/:id/tag', (req, res) => {
   const { id } = req.params;
-  const tag = req.body.tag ?? "unrated"; // normalize null to 'unrated'
+  const tag = req.body.tag ?? 'unrated'; // normalize null to 'unrated'
 
-  const photo = db.prepare("SELECT * FROM photos WHERE id = ?").get(id);
-  if (!photo) return res.status(404).json({ error: "Photo not found" });
+  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
-  const validTags = ["love", "like", "meh", "tax_deduction", "unrated"];
+  const validTags = ['love', 'like', 'meh', 'tax_deduction', 'unrated'];
   if (!validTags.includes(tag)) {
-    return res.status(400).json({ error: "Invalid tag" });
+    return res.status(400).json({ error: 'Invalid tag' });
   }
 
   const updateTag = db.transaction(() => {
@@ -98,7 +98,7 @@ router.patch("/:id/tag", (req, res) => {
     const oldPosition = photo.group_position;
 
     // Remove from old group and recompact
-    if (oldTag !== "unrated" && oldPosition != null) {
+    if (oldTag !== 'unrated' && oldPosition != null) {
       db.prepare(
         `
         UPDATE photos SET group_position = group_position - 1
@@ -107,9 +107,9 @@ router.patch("/:id/tag", (req, res) => {
       ).run(oldTag, oldPosition);
     }
 
-    if (tag !== "unrated") {
+    if (tag !== 'unrated') {
       const priority = { love: 1, like: 2, meh: 3, tax_deduction: 4 };
-      const demoting = oldTag !== "unrated" && priority[oldTag] < priority[tag];
+      const demoting = oldTag !== 'unrated' && priority[oldTag] < priority[tag];
 
       let newPosition;
       if (demoting) {
@@ -125,38 +125,38 @@ router.patch("/:id/tag", (req, res) => {
         // Promoting or newly rated: append to bottom
         const maxPos = db
           .prepare(
-            "SELECT COALESCE(MAX(group_position), 0) as max_pos FROM photos WHERE tag = ?",
+            'SELECT COALESCE(MAX(group_position), 0) as max_pos FROM photos WHERE tag = ?',
           )
           .get(tag);
         newPosition = maxPos.max_pos + 1;
       }
 
       db.prepare(
-        "UPDATE photos SET tag = ?, group_position = ? WHERE id = ?",
+        'UPDATE photos SET tag = ?, group_position = ? WHERE id = ?',
       ).run(tag, newPosition, id);
     } else {
       // Clear tag — set to unrated
       db.prepare(
-        "UPDATE photos SET tag = 'unrated', group_position = NULL WHERE id = ?",
+        'UPDATE photos SET tag = \'unrated\', group_position = NULL WHERE id = ?',
       ).run(id);
     }
   });
 
   updateTag();
 
-  const updated = db.prepare("SELECT * FROM photos WHERE id = ?").get(id);
+  const updated = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
   res.json(updated);
 });
 
 // PATCH /api/photos/:id/reorder — move photo within its tag group
-router.patch("/:id/reorder", (req, res) => {
+router.patch('/:id/reorder', (req, res) => {
   const { id } = req.params;
   const { newPosition } = req.body;
 
-  const photo = db.prepare("SELECT * FROM photos WHERE id = ?").get(id);
-  if (!photo) return res.status(404).json({ error: "Photo not found" });
-  if (photo.tag === "unrated")
-    return res.status(400).json({ error: "Cannot reorder unrated photo" });
+  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  if (!photo) return res.status(404).json({ error: 'Photo not found' });
+  if (photo.tag === 'unrated')
+    return res.status(400).json({ error: 'Cannot reorder unrated photo' });
 
   const oldPosition = photo.group_position;
   if (oldPosition === newPosition) return res.json(photo);
@@ -180,7 +180,7 @@ router.patch("/:id/reorder", (req, res) => {
       ).run(photo.tag, newPosition, oldPosition);
     }
 
-    db.prepare("UPDATE photos SET group_position = ? WHERE id = ?").run(
+    db.prepare('UPDATE photos SET group_position = ? WHERE id = ?').run(
       newPosition,
       id,
     );
@@ -188,15 +188,15 @@ router.patch("/:id/reorder", (req, res) => {
 
   reorder();
 
-  const updated = db.prepare("SELECT * FROM photos WHERE id = ?").get(id);
+  const updated = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
   res.json(updated);
 });
 
 // GET /api/photos/:id/full — serve full-size photo
-router.get("/:id/full", (req, res) => {
+router.get('/:id/full', (req, res) => {
   const { id } = req.params;
-  const photo = db.prepare("SELECT filename FROM photos WHERE id = ?").get(id);
-  if (!photo) return res.status(404).json({ error: "Photo not found" });
+  const photo = db.prepare('SELECT filename FROM photos WHERE id = ?').get(id);
+  if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
   res.sendFile(resolve(PROJECT_ROOT, photo.filename));
 });

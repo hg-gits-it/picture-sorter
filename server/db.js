@@ -25,8 +25,8 @@ db.exec(`
 `);
 
 // Migrate: if existing table has old CHECK constraint, recreate with current schema
-const tableInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
-if (tableInfo && (!tableInfo.sql.includes("'unrated'") || tableInfo.sql.includes("'hate'"))) {
+const tableInfo = db.prepare('SELECT sql FROM sqlite_master WHERE type=\'table\' AND name=\'photos\'').get();
+if (tableInfo && (!tableInfo.sql.includes('\'unrated\'') || tableInfo.sql.includes('\'hate\''))) {
   db.exec(`
     ALTER TABLE photos RENAME TO photos_old;
     CREATE TABLE photos (
@@ -44,27 +44,27 @@ if (tableInfo && (!tableInfo.sql.includes("'unrated'") || tableInfo.sql.includes
 }
 
 // Migrate: add 'taken' column if missing
-const tableInfo2 = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
+const tableInfo2 = db.prepare('SELECT sql FROM sqlite_master WHERE type=\'table\' AND name=\'photos\'').get();
 if (tableInfo2 && !tableInfo2.sql.includes('taken')) {
-  db.exec(`ALTER TABLE photos ADD COLUMN taken INTEGER DEFAULT 0`);
+  db.exec('ALTER TABLE photos ADD COLUMN taken INTEGER DEFAULT 0');
 }
 
 // Migrate: add parsed metadata columns if missing
-const tableInfo3 = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
+const tableInfo3 = db.prepare('SELECT sql FROM sqlite_master WHERE type=\'table\' AND name=\'photos\'').get();
 if (tableInfo3 && !tableInfo3.sql.includes('artist')) {
-  db.exec(`ALTER TABLE photos ADD COLUMN number TEXT`);
-  db.exec(`ALTER TABLE photos ADD COLUMN artist TEXT`);
-  db.exec(`ALTER TABLE photos ADD COLUMN title TEXT`);
-  db.exec(`ALTER TABLE photos ADD COLUMN medium TEXT`);
-  db.exec(`ALTER TABLE photos ADD COLUMN dimensions TEXT`);
-  db.exec(`ALTER TABLE photos ADD COLUMN flickr_id TEXT`);
+  db.exec('ALTER TABLE photos ADD COLUMN number TEXT');
+  db.exec('ALTER TABLE photos ADD COLUMN artist TEXT');
+  db.exec('ALTER TABLE photos ADD COLUMN title TEXT');
+  db.exec('ALTER TABLE photos ADD COLUMN medium TEXT');
+  db.exec('ALTER TABLE photos ADD COLUMN dimensions TEXT');
+  db.exec('ALTER TABLE photos ADD COLUMN flickr_id TEXT');
 }
 
 // Migrate: convert any remaining NULL tags to 'unrated'
-db.exec(`UPDATE photos SET tag = 'unrated' WHERE tag IS NULL`);
+db.exec('UPDATE photos SET tag = \'unrated\' WHERE tag IS NULL');
 
 // Migrate: if filenames use old format (contain '--'), wipe all rows to force re-scan
-const oldFormatRow = db.prepare("SELECT id FROM photos WHERE filename LIKE '%--%.%' LIMIT 1").get();
+const oldFormatRow = db.prepare('SELECT id FROM photos WHERE filename LIKE \'%--%.%\' LIMIT 1').get();
 if (oldFormatRow) {
   db.exec('DELETE FROM photos');
 }

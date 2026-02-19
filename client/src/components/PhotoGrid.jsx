@@ -12,7 +12,7 @@ export default function PhotoGrid({ photos, draggable }) {
     e.currentTarget.classList.add('dragging');
   };
 
-  const handleDragOver = (e, photo) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };

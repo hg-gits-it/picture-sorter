@@ -1,13 +1,13 @@
-import React from "react";
-import { usePhotos } from "../context/PhotoContext.jsx";
+import React from 'react';
+import { usePhotos } from '../context/PhotoContext.jsx';
 
 const FILTERS = [
-  { key: null, label: "All" },
-  { key: "love", label: "Love", icon: "\u2665" },
-  { key: "like", label: "Like", icon: "\u261D" },
-  { key: "meh", label: "Meh", icon: "\u261F" },
-  { key: "tax_deduction", label: "Tax Deduction", icon: "$" },
-  { key: "unrated", label: "Unrated" },
+  { key: null, label: 'All' },
+  { key: 'love', label: 'Love', icon: '\u2665' },
+  { key: 'like', label: 'Like', icon: '\u261D' },
+  { key: 'meh', label: 'Meh', icon: '\u261F' },
+  { key: 'tax_deduction', label: 'Tax Deduction', icon: '$' },
+  { key: 'unrated', label: 'Unrated' },
 ];
 
 export default function FilterBar() {
@@ -26,7 +26,7 @@ export default function FilterBar() {
           {FILTERS.map(({ key, label, icon }) => (
             <button
               key={label}
-              className={`filter-btn ${filterTag === key ? "active" : ""} ${key ? "filter-" + key : "filter-all"}`}
+              className={`filter-btn ${filterTag === key ? 'active' : ''} ${key ? 'filter-' + key : 'filter-all'}`}
               onClick={() => setFilterTag(key)}
             >
               {icon && <span className="filter-icon">{icon}</span>}
@@ -43,7 +43,7 @@ export default function FilterBar() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      <label className="toggle-switch" title={hideClaimed ? "Showing unclaimed only" : "Showing all pieces"}>
+      <label className="toggle-switch" title={hideClaimed ? 'Showing unclaimed only' : 'Showing all pieces'}>
         <input
           type="checkbox"
           checked={hideClaimed}
