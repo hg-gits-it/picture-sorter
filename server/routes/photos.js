@@ -30,7 +30,7 @@ router.get('/', (req, res) => {
   let where = [];
   let params = [];
 
-  if (tag === 'unranked') {
+  if (tag === 'unrated') {
     where.push('tag IS NULL');
   } else if (tag) {
     where.push('tag = ?');
@@ -79,7 +79,7 @@ router.get('/', (req, res) => {
       COALESCE(SUM(CASE WHEN tag = 'like' THEN 1 ELSE 0 END), 0) as 'like',
       COALESCE(SUM(CASE WHEN tag = 'meh' THEN 1 ELSE 0 END), 0) as meh,
       COALESCE(SUM(CASE WHEN tag = 'tax_deduction' THEN 1 ELSE 0 END), 0) as tax_deduction,
-      COALESCE(SUM(CASE WHEN tag IS NULL THEN 1 ELSE 0 END), 0) as unranked
+      COALESCE(SUM(CASE WHEN tag IS NULL THEN 1 ELSE 0 END), 0) as unrated
     FROM photos
   `).get();
 
@@ -114,11 +114,24 @@ router.patch('/:id/tag', (req, res) => {
     }
 
     if (tag) {
-      // Append to end of new group
-      const maxPos = db.prepare(
-        'SELECT COALESCE(MAX(group_position), 0) as max_pos FROM photos WHERE tag = ?'
-      ).get(tag);
-      const newPosition = maxPos.max_pos + 1;
+      const priority = { love: 1, like: 2, meh: 3, tax_deduction: 4 };
+      const demoting = oldTag && priority[oldTag] < priority[tag];
+
+      let newPosition;
+      if (demoting) {
+        // Demoting (higher → lower priority): insert at top
+        db.prepare(`
+          UPDATE photos SET group_position = group_position + 1
+          WHERE tag = ?
+        `).run(tag);
+        newPosition = 1;
+      } else {
+        // Promoting or newly rated: append to bottom
+        const maxPos = db.prepare(
+          'SELECT COALESCE(MAX(group_position), 0) as max_pos FROM photos WHERE tag = ?'
+        ).get(tag);
+        newPosition = maxPos.max_pos + 1;
+      }
 
       db.prepare('UPDATE photos SET tag = ?, group_position = ? WHERE id = ?')
         .run(tag, newPosition, id);
@@ -142,7 +155,7 @@ router.patch('/:id/reorder', (req, res) => {
 
   const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
-  if (!photo.tag) return res.status(400).json({ error: 'Cannot reorder unranked photo' });
+  if (!photo.tag) return res.status(400).json({ error: 'Cannot reorder unrated photo' });
 
   const oldPosition = photo.group_position;
   if (oldPosition === newPosition) return res.json(photo);

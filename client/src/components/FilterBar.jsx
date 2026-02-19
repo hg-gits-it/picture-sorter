@@ -3,11 +3,11 @@ import { usePhotos } from "../context/PhotoContext.jsx";
 
 const FILTERS = [
   { key: null, label: "All" },
-  { key: "love", label: "Love" },
-  { key: "like", label: "Like" },
-  { key: "meh", label: "Meh" },
-  { key: "tax_deduction", label: "Tax Deduction" },
-  { key: "unranked", label: "Unranked" },
+  { key: "love", label: "Love", icon: "\u2665" },
+  { key: "like", label: "Like", icon: "\u261D" },
+  { key: "meh", label: "Meh", icon: "\u261F" },
+  { key: "tax_deduction", label: "Tax Deduction", icon: "$" },
+  { key: "unrated", label: "Unrated" },
 ];
 
 export default function FilterBar() {
@@ -22,12 +22,13 @@ export default function FilterBar() {
   return (
     <div className="filter-bar">
       <div className="filter-buttons">
-        {FILTERS.map(({ key, label }) => (
+        {FILTERS.map(({ key, label, icon }) => (
           <button
             key={label}
             className={`filter-btn ${filterTag === key ? "active" : ""} ${key ? "filter-" + key : "filter-all"}`}
             onClick={() => setFilterTag(key)}
           >
+            {icon && <span className="filter-icon">{icon}</span>}
             {label}
             <span className="filter-count">{getCount(key)}</span>
           </button>

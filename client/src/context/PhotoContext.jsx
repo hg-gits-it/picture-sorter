@@ -5,7 +5,7 @@ const PhotoContext = createContext();
 
 const initialState = {
   photos: [],
-  counts: { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unranked: 0 },
+  counts: { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 },
   filterTag: null,
   searchQuery: '',
   selectedPhoto: null,

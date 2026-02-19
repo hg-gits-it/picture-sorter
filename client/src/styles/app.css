@@ -89,6 +89,26 @@ body {
   border-color: #6c5ce7;
 }
 
+.filter-icon {
+  font-size: 0.95rem;
+}
+
+.filter-love .filter-icon {
+  color: #e74c3c;
+}
+
+.filter-like .filter-icon {
+  color: #27ae60;
+}
+
+.filter-meh .filter-icon {
+  color: #3498db;
+}
+
+.filter-tax_deduction .filter-icon {
+  color: #7f8c8d;
+}
+
 .filter-count {
   background: rgba(255, 255, 255, 0.15);
   padding: 1px 7px;
@@ -148,18 +168,18 @@ body {
 }
 
 .tag-group-like {
-  border-left-color: #3498db;
-}
-
-.tag-group-meh {
-  border-left-color: #7f8c8d;
-}
-
-.tag-group-tax_deduction {
   border-left-color: #27ae60;
 }
 
-.tag-group-unranked {
+.tag-group-meh {
+  border-left-color: #3498db;
+}
+
+.tag-group-tax_deduction {
+  border-left-color: #7f8c8d;
+}
+
+.tag-group-unrated {
   border-left-color: #555;
 }
 
@@ -205,11 +225,16 @@ body {
   transform: scale(0.95);
 }
 
+.photo-card.taken {
+  opacity: 0.4;
+}
+
 .photo-card-image {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
   cursor: pointer;
+  position: relative;
 }
 
 .photo-card-image img {
@@ -217,6 +242,20 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.photo-card-claimed {
+  position: absolute;
+  top: 12px;
+  right: -28px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 32px;
+  transform: rotate(45deg);
 }
 
 .photo-card-info {
@@ -280,7 +319,7 @@ body {
 .photo-card-rank {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #6c5ce7;
+  color: #a0a0b8;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -315,20 +354,20 @@ body {
 
 .tag-btn.like.active {
   background: rgba(52, 152, 219, 0.2);
-  border-color: #3498db;
-  color: #3498db;
+  border-color: #27ae60;
+  color: #27ae60;
 }
 
 .tag-btn.meh.active {
   background: rgba(127, 140, 141, 0.2);
-  border-color: #7f8c8d;
-  color: #7f8c8d;
+  border-color: #3498db;
+  color: #3498db;
 }
 
 .tag-btn.tax_deduction.active {
   background: rgba(39, 174, 96, 0.2);
-  border-color: #27ae60;
-  color: #27ae60;
+  border-color: #7f8c8d;
+  color: #7f8c8d;
 }
 
 /* Modal */
