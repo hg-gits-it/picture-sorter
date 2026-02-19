@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import photosRouter from './routes/photos.js';
 import submitRouter from './routes/submit.js';
 import showtimeRouter from './routes/showtime.js';
-import { scanPhotos } from './scanner.js';
+import scanRouter from './routes/scan.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const THUMBNAILS_DIR = resolve(__dirname, '..', 'data', 'thumbnails');
@@ -24,28 +24,13 @@ app.use('/thumbnails', express.static(THUMBNAILS_DIR));
 app.use('/api/photos', photosRouter);
 app.use('/api/submit', submitRouter);
 app.use('/api/showtime/photos', showtimeRouter);
-
-// Scan endpoint
-app.post('/api/scan', async (req, res) => {
-  try {
-    const result = await scanPhotos();
-    res.json(result);
-  } catch (err) {
-    console.error('Scan failed:', err);
-    res.status(500).json({ error: 'Scan failed' });
-  }
-});
+app.use('/api/scan', scanRouter);
 
 // Serve built frontend
 app.use(express.static(CLIENT_DIST));
 app.get('*', (req, res) => {
   res.sendFile(resolve(CLIENT_DIST, 'index.html'));
 });
-
-// Auto-scan on startup
-scanPhotos()
-  .then(result => console.log(`Startup scan complete: ${result.scanned} photos found`))
-  .catch(err => console.error('Startup scan failed:', err));
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

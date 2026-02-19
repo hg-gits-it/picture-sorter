@@ -26,11 +26,11 @@ npm test             # Run server tests (Node test runner)
 
 ```
 server/
-  index.js            # Express app, route mounting, startup scan
+  index.js            # Express app, route mounting
   db.js               # SQLite connection, schema, migrations
-  scanner.js          # Filesystem scan + thumbnail generation (Sharp)
   routes/
     photos.js         # Core CRUD: list, tag, reorder, serve full image
+    scan.js           # Filesystem scan + thumbnail generation (Sharp)
     submit.js         # SSE streaming submission to external show API
     showtime.js       # Read-only showtime mode (take/restore artwork)
   utils/
@@ -76,13 +76,13 @@ Global rank is computed at query time via SQL CASE expressions in `server/routes
 
 ## Database
 
-Single `photos` table with columns: `id`, `filename` (unique), `tag` (CHECK constraint), `group_position`, `taken`, `number`, `artist`, `title`, `medium`, `dimensions`, `flickr_id`, `created_at`.
+Single `photos` table with columns: `id`, `filename` (unique), `tag` (CHECK constraint), `group_position`, `taken`, `show_id`, `artist`, `title`, `medium`, `dimensions`, `flickr_id`, `created_at`.
 
 Migrations run on startup in `server/db.js:27-70` — forward-only, checking `sqlite_master` before each change.
 
 ## Photo Sources
 
-Photos are scanned from `.flickr-download/` directory. Metadata is read from Flickr JSON sidecar files (`.json` next to each image) via `server/utils/parseFlickrMeta.js`. Thumbnails (300x300) are generated into `data/thumbnails/`.
+Photos are scanned from `photos/` directory. Metadata is read from Flickr JSON sidecar files (`.json` next to each image) via `server/utils/parseFlickrMeta.js`. Thumbnails (300x300) are generated into `data/thumbnails/`.
 
 ## Adding New Features or Fixing Bugs
 

@@ -22,7 +22,7 @@ router.get('/', (req, res) => {
 
   if (search) {
     where.push(
-      '(number LIKE ? OR artist LIKE ? OR title LIKE ? OR medium LIKE ?)',
+      '(show_id LIKE ? OR artist LIKE ? OR title LIKE ? OR medium LIKE ?)',
     );
     params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
@@ -55,7 +55,7 @@ router.get('/', (req, res) => {
       CASE WHEN tag = 'unrated' THEN 1 ELSE 0 END,
       CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 ELSE 5 END,
       group_position,
-      CAST(number AS INTEGER)
+      CAST(show_id AS INTEGER)
   `;
 
   const photos = db.prepare(sql).all(...params);

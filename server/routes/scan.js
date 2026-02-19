@@ -1,48 +1,31 @@
+import { Router } from 'express';
 import { readdirSync, readFileSync, existsSync, unlinkSync, mkdirSync } from 'fs';
-import { resolve, dirname, extname, join, relative } from 'path';
+import { resolve, dirname, extname, relative } from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
-import db from './db.js';
-import { parseFlickrMeta } from './utils/parseFlickrMeta.js';
+import db from '../db.js';
+import { parseFlickrMeta } from '../utils/parseFlickrMeta.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, '..');
-const DOWNLOAD_DIR = resolve(PROJECT_ROOT, '.flickr-download');
-const THUMBNAILS_DIR = resolve(PROJECT_ROOT, 'data', 'thumbnails');
-
-mkdirSync(THUMBNAILS_DIR, { recursive: true });
+const PROJECT_ROOT = resolve(__dirname, '..', '..');
 
 const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png']);
 
-/**
- * Recursively find all image files under a directory.
- * Returns array of absolute paths.
- */
-function findImageFiles(dir) {
-  const results = [];
-  if (!existsSync(dir)) return results;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...findImageFiles(full));
-    } else {
-      const ext = extname(entry.name).toLowerCase();
-      if (IMAGE_EXTENSIONS.has(ext)) {
-        results.push(full);
-      }
-    }
-  }
-  return results;
-}
+async function scanPhotos() {
+  const photosDir = process.env.PHOTOS_DIR || resolve(PROJECT_ROOT, 'photos');
+  const thumbnailsDir = process.env.THUMBNAILS_DIR || resolve(PROJECT_ROOT, 'data', 'thumbnails');
+  mkdirSync(thumbnailsDir, { recursive: true });
+  if (!existsSync(photosDir)) return { scanned: 0 };
 
-export async function scanPhotos() {
-  const imageFiles = findImageFiles(DOWNLOAD_DIR);
+  const imageFiles = readdirSync(photosDir)
+    .filter(name => IMAGE_EXTENSIONS.has(extname(name).toLowerCase()))
+    .map(name => resolve(photosDir, name));
 
   const insertStmt = db.prepare(
     'INSERT OR IGNORE INTO photos (filename) VALUES (?)'
   );
   const updateMetaStmt = db.prepare(
-    'UPDATE photos SET number=?, artist=?, title=?, medium=?, dimensions=?, flickr_id=? WHERE filename=? AND artist IS NULL'
+    'UPDATE photos SET show_id=?, artist=?, title=?, medium=?, dimensions=?, flickr_id=? WHERE filename=? AND artist IS NULL'
   );
 
   const insertMany = db.transaction((files) => {
@@ -58,7 +41,7 @@ export async function scanPhotos() {
           const parsed = parseFlickrMeta(meta.title);
           const flickrId = meta.id ? String(meta.id) : null;
           updateMetaStmt.run(
-            parsed.number, parsed.artist, parsed.title,
+            parsed.show_id, parsed.artist, parsed.title,
             parsed.medium, parsed.dimensions, flickrId, relPath
           );
         } catch (err) {
@@ -77,7 +60,7 @@ export async function scanPhotos() {
 
   for (const photo of photosWithFlickrId) {
     const thumbName = `${photo.flickr_id}.jpg`;
-    const thumbPath = resolve(THUMBNAILS_DIR, thumbName);
+    const thumbPath = resolve(thumbnailsDir, thumbName);
     if (!existsSync(thumbPath)) {
       try {
         await sharp(resolve(PROJECT_ROOT, photo.filename))
@@ -97,7 +80,7 @@ export async function scanPhotos() {
 
   for (const photo of photosWithoutFlickrId) {
     const thumbName = photo.filename.replace(/[/\\]/g, '_');
-    const thumbPath = resolve(THUMBNAILS_DIR, thumbName);
+    const thumbPath = resolve(thumbnailsDir, thumbName);
     if (!existsSync(thumbPath)) {
       try {
         await sharp(resolve(PROJECT_ROOT, photo.filename))
@@ -121,7 +104,7 @@ export async function scanPhotos() {
         deleteStmt.run(photo.id);
         // Remove orphaned thumbnail
         if (photo.flickr_id) {
-          const thumbPath = resolve(THUMBNAILS_DIR, `${photo.flickr_id}.jpg`);
+          const thumbPath = resolve(thumbnailsDir, `${photo.flickr_id}.jpg`);
           if (existsSync(thumbPath)) unlinkSync(thumbPath);
         }
       }
@@ -132,3 +115,17 @@ export async function scanPhotos() {
 
   return { scanned: imageFiles.length };
 }
+
+const router = Router();
+
+router.post('/', async (req, res) => {
+  try {
+    const result = await scanPhotos();
+    res.json(result);
+  } catch (err) {
+    console.error('Scan failed:', err);
+    res.status(500).json({ error: 'Scan failed' });
+  }
+});
+
+export default router;
