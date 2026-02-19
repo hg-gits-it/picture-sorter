@@ -1,6 +1,7 @@
 node_modules/
 data/
-.flickr-download/
+flickr/
+photos/
 *.db
 *.db-shm
 *.db-wal

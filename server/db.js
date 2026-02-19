@@ -4,10 +4,9 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = resolve(__dirname, '..', 'data');
-const DB_PATH = resolve(DATA_DIR, 'picture-sorter.db');
+const DB_PATH = process.env.DB_PATH || resolve(__dirname, '..', 'data', 'picture-sorter.db');
 
-mkdirSync(DATA_DIR, { recursive: true });
+mkdirSync(dirname(DB_PATH), { recursive: true });
 
 const db = new Database(DB_PATH);
 

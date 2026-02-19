@@ -26,11 +26,11 @@ npm test             # Run server tests (Node test runner)
 
 ```
 server/
-  index.js            # Express app, route mounting, startup scan
+  index.js            # Express app, route mounting
   db.js               # SQLite connection, schema, migrations
-  scanner.js          # Filesystem scan + thumbnail generation (Sharp)
   routes/
     photos.js         # Core CRUD: list, tag, reorder, serve full image
+    scan.js           # Filesystem scan + thumbnail generation (Sharp)
     submit.js         # SSE streaming submission to external show API
     showtime.js       # Read-only showtime mode (take/restore artwork)
   utils/
@@ -82,7 +82,7 @@ Migrations run on startup in `server/db.js:27-70` — forward-only, checking `sq
 
 ## Photo Sources
 
-Photos are scanned from `.flickr-download/` directory. Metadata is read from Flickr JSON sidecar files (`.json` next to each image) via `server/utils/parseFlickrMeta.js`. Thumbnails (300x300) are generated into `data/thumbnails/`.
+Photos are scanned from `photos/` directory. Metadata is read from Flickr JSON sidecar files (`.json` next to each image) via `server/utils/parseFlickrMeta.js`. Thumbnails (300x300) are generated into `data/thumbnails/`.
 
 ## Adding New Features or Fixing Bugs
 
