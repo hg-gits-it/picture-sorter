@@ -50,11 +50,11 @@ export default function ShowtimePage() {
 
   const takenPhotos = useMemo(() => photos.filter((p) => p.taken), [photos]);
 
-  const photoByNumber = useMemo(() => {
+  const photoByShowId = useMemo(() => {
     const map = {};
     for (const photo of photos) {
-      if (photo.number) {
-        const normalized = String(parseInt(photo.number, 10));
+      if (photo.show_id) {
+        const normalized = String(parseInt(photo.show_id, 10));
         map[normalized] = photo;
       }
     }
@@ -68,7 +68,7 @@ export default function ShowtimePage() {
     if (!num) return;
 
     const normalized = String(parseInt(num, 10));
-    const match = photoByNumber[normalized];
+    const match = photoByShowId[normalized];
 
     if (!match) {
       setError(`No artwork found with number ${num}`);
@@ -84,7 +84,7 @@ export default function ShowtimePage() {
         await restorePhoto(confirmPhoto.id);
       } else {
         await takePhoto(confirmPhoto.id);
-        setToast({ id: confirmPhoto.id, number: confirmPhoto.number });
+        setToast({ id: confirmPhoto.id, show_id: confirmPhoto.show_id });
       }
       setConfirmPhoto(null);
       setInputValue('');
@@ -141,7 +141,7 @@ export default function ShowtimePage() {
 
       {toast && (
         <div className="showtime-toast">
-          <span>Claimed #{toast.number}</span>
+          <span>Claimed #{toast.show_id}</span>
           <button
             className="showtime-toast-undo"
             onClick={async () => {
@@ -165,7 +165,7 @@ export default function ShowtimePage() {
       <section className="showtime-list">
         {availablePhotos.map((photo) => (
             <div key={photo.id} className="showtime-row">
-              <span className="showtime-row-number">#{photo.number}</span>
+              <span className="showtime-row-number">#{photo.show_id}</span>
               <img
                 className="showtime-thumb"
                 src={thumbnailUrl(photo.flickr_id)}
@@ -189,7 +189,7 @@ export default function ShowtimePage() {
           <h2 className="showtime-taken-title">Taken</h2>
           {takenPhotos.map((photo) => (
               <div key={photo.id} className="showtime-row taken">
-                <span className="showtime-row-number">#{photo.number}</span>
+                <span className="showtime-row-number">#{photo.show_id}</span>
                 <img
                   className="showtime-thumb"
                   src={thumbnailUrl(photo.flickr_id)}
@@ -248,7 +248,7 @@ export default function ShowtimePage() {
             />
             <div className="showtime-confirm-info">
               <div className="showtime-confirm-number">
-                #{confirmPhoto.number}
+                #{confirmPhoto.show_id}
               </div>
               <div className="showtime-confirm-title">
                 {confirmPhoto.title}

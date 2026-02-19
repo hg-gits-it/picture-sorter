@@ -16,7 +16,7 @@ function insertPhoto(overrides = {}) {
     tag: 'unrated',
     group_position: null,
     taken: 0,
-    number: null,
+    show_id: null,
     artist: null,
     title: null,
     medium: null,
@@ -26,7 +26,7 @@ function insertPhoto(overrides = {}) {
   const data = { ...defaults, ...overrides };
   const result = db
     .prepare(
-      `INSERT INTO photos (filename, tag, group_position, taken, number, artist, title, medium, dimensions, flickr_id)
+      `INSERT INTO photos (filename, tag, group_position, taken, show_id, artist, title, medium, dimensions, flickr_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
@@ -34,7 +34,7 @@ function insertPhoto(overrides = {}) {
       data.tag,
       data.group_position,
       data.taken,
-      data.number,
+      data.show_id,
       data.artist,
       data.title,
       data.medium,
@@ -53,8 +53,8 @@ describe('GET /api/photos', () => {
   afterEach(clearPhotos);
 
   it('returns all photos with counts', async () => {
-    insertPhoto({ filename: 'a.jpg', number: '1' });
-    insertPhoto({ filename: 'b.jpg', number: '2' });
+    insertPhoto({ filename: 'a.jpg', show_id: '1' });
+    insertPhoto({ filename: 'b.jpg', show_id: '2' });
 
     const res = await request(app).get('/api/photos').expect(200);
 
@@ -75,10 +75,10 @@ describe('GET /api/photos', () => {
   });
 
   it('search matches across metadata columns', async () => {
-    insertPhoto({ filename: 'a.jpg', artist: 'Picasso', number: '10' });
-    insertPhoto({ filename: 'b.jpg', title: 'Sunset', number: '20' });
-    insertPhoto({ filename: 'c.jpg', medium: 'Oil', number: '30' });
-    insertPhoto({ filename: 'd.jpg', number: '42' });
+    insertPhoto({ filename: 'a.jpg', artist: 'Picasso', show_id: '10' });
+    insertPhoto({ filename: 'b.jpg', title: 'Sunset', show_id: '20' });
+    insertPhoto({ filename: 'c.jpg', medium: 'Oil', show_id: '30' });
+    insertPhoto({ filename: 'd.jpg', show_id: '42' });
 
     // search artist
     const res = await request(app)
@@ -90,7 +90,7 @@ describe('GET /api/photos', () => {
     // search number
     const res2 = await request(app).get('/api/photos?search=42').expect(200);
     assert.equal(res2.body.photos.length, 1);
-    assert.equal(res2.body.photos[0].number, '42');
+    assert.equal(res2.body.photos[0].show_id, '42');
 
     // search title
     const res3 = await request(app)
@@ -120,25 +120,25 @@ describe('GET /api/photos', () => {
       filename: 'a.jpg',
       tag: 'meh',
       group_position: 2,
-      number: '1',
+      show_id: '1',
     });
     insertPhoto({
       filename: 'b.jpg',
       tag: 'love',
       group_position: 1,
-      number: '2',
+      show_id: '2',
     });
     insertPhoto({
       filename: 'c.jpg',
       tag: 'meh',
       group_position: 1,
-      number: '3',
+      show_id: '3',
     });
     insertPhoto({
       filename: 'd.jpg',
       tag: 'love',
       group_position: 2,
-      number: '4',
+      show_id: '4',
     });
 
     const res = await request(app).get('/api/photos').expect(200);
@@ -147,15 +147,15 @@ describe('GET /api/photos', () => {
     assert.deepEqual(tags, ['love:1', 'love:2', 'meh:1', 'meh:2']);
   });
 
-  it('unrated photos sorted by number', async () => {
-    insertPhoto({ filename: 'a.jpg', number: '30' });
-    insertPhoto({ filename: 'b.jpg', number: '5' });
-    insertPhoto({ filename: 'c.jpg', number: '12' });
+  it('unrated photos sorted by show_id', async () => {
+    insertPhoto({ filename: 'a.jpg', show_id: '30' });
+    insertPhoto({ filename: 'b.jpg', show_id: '5' });
+    insertPhoto({ filename: 'c.jpg', show_id: '12' });
 
     const res = await request(app).get('/api/photos?tag=unrated').expect(200);
-    const numbers = res.body.photos.map((p) => p.number);
+    const showIds = res.body.photos.map((p) => p.show_id);
 
-    assert.deepEqual(numbers, ['5', '12', '30']);
+    assert.deepEqual(showIds, ['5', '12', '30']);
   });
 
   it('global rank computed correctly', async () => {

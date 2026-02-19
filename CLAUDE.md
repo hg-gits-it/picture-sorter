@@ -76,7 +76,7 @@ Global rank is computed at query time via SQL CASE expressions in `server/routes
 
 ## Database
 
-Single `photos` table with columns: `id`, `filename` (unique), `tag` (CHECK constraint), `group_position`, `taken`, `number`, `artist`, `title`, `medium`, `dimensions`, `flickr_id`, `created_at`.
+Single `photos` table with columns: `id`, `filename` (unique), `tag` (CHECK constraint), `group_position`, `taken`, `show_id`, `artist`, `title`, `medium`, `dimensions`, `flickr_id`, `created_at`.
 
 Migrations run on startup in `server/db.js:27-70` — forward-only, checking `sqlite_master` before each change.
 

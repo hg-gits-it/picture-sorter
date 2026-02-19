@@ -69,4 +69,10 @@ if (oldFormatRow) {
   db.exec('DELETE FROM photos');
 }
 
+// Migrate: rename 'number' column to 'show_id'
+const tableInfo4 = db.prepare('SELECT sql FROM sqlite_master WHERE type=\'table\' AND name=\'photos\'').get();
+if (tableInfo4 && tableInfo4.sql.includes('number') && !tableInfo4.sql.includes('show_id')) {
+  db.exec('ALTER TABLE photos RENAME COLUMN number TO show_id');
+}
+
 export default db;

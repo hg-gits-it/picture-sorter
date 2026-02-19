@@ -174,13 +174,11 @@ router.get('/', async (req, res) => {
       if (aborted) { res.end(); return; }
 
       const photo = photos[i];
-      // Extract show-id from filename prefix (number before first --)
-      const showIdMatch = photo.filename.match(/^(\d+)--/);
-      if (!showIdMatch) {
+      const showId = photo.show_id;
+      if (!showId) {
         sendEvent(res, { step: 'add', message: `Skipping "${photo.filename}" (no show ID)`, current: i + 1, total: photos.length });
         continue;
       }
-      const showId = String(parseInt(showIdMatch[1], 10));
 
       sendEvent(res, { step: 'add', message: `Adding #${showId} (${i + 1}/${photos.length})...`, current: i + 1, total: photos.length });
 

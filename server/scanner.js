@@ -42,7 +42,7 @@ export async function scanPhotos() {
     'INSERT OR IGNORE INTO photos (filename) VALUES (?)'
   );
   const updateMetaStmt = db.prepare(
-    'UPDATE photos SET number=?, artist=?, title=?, medium=?, dimensions=?, flickr_id=? WHERE filename=? AND artist IS NULL'
+    'UPDATE photos SET show_id=?, artist=?, title=?, medium=?, dimensions=?, flickr_id=? WHERE filename=? AND artist IS NULL'
   );
 
   const insertMany = db.transaction((files) => {
@@ -58,7 +58,7 @@ export async function scanPhotos() {
           const parsed = parseFlickrMeta(meta.title);
           const flickrId = meta.id ? String(meta.id) : null;
           updateMetaStmt.run(
-            parsed.number, parsed.artist, parsed.title,
+            parsed.show_id, parsed.artist, parsed.title,
             parsed.medium, parsed.dimensions, flickrId, relPath
           );
         } catch (err) {
