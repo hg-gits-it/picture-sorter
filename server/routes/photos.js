@@ -25,7 +25,7 @@ function higherGroupCount(tag) {
 
 // GET /api/photos — list photos with computed global rank
 router.get('/', (req, res) => {
-  const { tag, search, hideClaimed, sort } = req.query;
+  const { tag, search, hideClaimed } = req.query;
 
   let where = [];
   let params = [];
@@ -50,14 +50,6 @@ router.get('/', (req, res) => {
 
   // Compute global rank using window functions
   // Priority: love=1, like=2, meh=3, tax_deduction=4, null=5
-  const orderBy = sort === 'number'
-    ? `ORDER BY CAST(substr(filename, 1, instr(filename, '--') - 1) AS INTEGER)`
-    : `ORDER BY
-      CASE WHEN tag IS NULL THEN 1 ELSE 0 END,
-      CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 ELSE 5 END,
-      group_position,
-      filename`;
-
   const sql = `
     SELECT *,
       CASE
@@ -74,7 +66,11 @@ router.get('/', (req, res) => {
       END as global_rank
     FROM photos
     ${whereClause}
-    ${orderBy}
+    ORDER BY
+      CASE WHEN tag IS NULL THEN 1 ELSE 0 END,
+      CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 ELSE 5 END,
+      group_position,
+      filename
   `;
 
   const photos = db.prepare(sql).all(...params);

@@ -3,12 +3,11 @@ import { PhotoProvider, usePhotos } from "./context/PhotoContext.jsx";
 import FilterBar from "./components/FilterBar.jsx";
 import TagGroup from "./components/TagGroup.jsx";
 import UnratedSection from "./components/UnratedSection.jsx";
-import PhotoGrid from "./components/PhotoGrid.jsx";
 import PhotoModal from "./components/PhotoModal.jsx";
 import SubmitModal from "./components/SubmitModal.jsx";
 
 function AppContent() {
-  const { photos, scanPhotos, loading, filterTag, sortByNumber } = usePhotos();
+  const { photos, scanPhotos, loading, filterTag } = usePhotos();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
 
   const lovePhotos = photos.filter((p) => p.tag === "love");
@@ -51,9 +50,7 @@ function AppContent() {
           </div>
         )}
 
-        {sortByNumber ? (
-          <PhotoGrid photos={photos} draggable={false} />
-        ) : showGrouped ? (
+        {showGrouped ? (
           <>
             <TagGroup tag="love" photos={lovePhotos} />
             <TagGroup tag="like" photos={likePhotos} />
