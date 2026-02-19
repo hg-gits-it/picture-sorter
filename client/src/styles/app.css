@@ -465,6 +465,19 @@ body {
   margin: 0 6px;
 }
 
+.modal-tag-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.modal-tag-actions .tag-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+}
+
 .modal-nav {
   position: absolute;
   top: 50%;
