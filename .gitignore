@@ -1,6 +1,10 @@
 node_modules/
-data/picture-sorter.db
-data/thumbnails/
+data/
 photos/
+.flickr-download/
+*.db
+*.db-shm
+*.db-wal
+package-lock.json
 .DS_Store
 dist/

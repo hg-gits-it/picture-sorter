@@ -11,12 +11,12 @@ const THUMBNAILS_DIR = resolve(__dirname, '..', 'data', 'thumbnails');
 
 mkdirSync(THUMBNAILS_DIR, { recursive: true });
 
-const JPEG_EXTENSIONS = new Set(['.jpg', '.jpeg']);
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png']);
 
 export async function scanPhotos() {
   const files = readdirSync(PHOTOS_DIR).filter(f => {
     const ext = extname(f).toLowerCase();
-    return JPEG_EXTENSIONS.has(ext);
+    return IMAGE_EXTENSIONS.has(ext);
   });
 
   const insertStmt = db.prepare(

@@ -70,7 +70,12 @@ function toTitleCase(str) {
 }
 
 function parseDimensions(str) {
-  const match = str.match(/^(\d+)x(\d+)/);
-  if (!match) return str;
-  return `${match[1]}" x ${match[2]}"`;
+  // Strip flickr ID suffix (e.g. _55072907591_o)
+  const clean = str.replace(/_\d+_o$/, '');
+  // Match dimensions like 19-25x15-25 (19.25x15.25), 20-x-16 (20x16), 14-5x10, etc.
+  const match = clean.match(/^(\d+(?:-\d+)?)-?x-?(\d+(?:-\d+)?)$/);
+  if (!match) return clean;
+  const w = match[1].replace('-', '.');
+  const h = match[2].replace('-', '.');
+  return `${w}" x ${h}"`;
 }
