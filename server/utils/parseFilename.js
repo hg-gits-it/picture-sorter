@@ -23,7 +23,7 @@ export function parseFilename(filename) {
   const parts = base.split('--');
 
   if (parts.length < 5) {
-    return { number: null, artist: null, title: filename, medium: null, dimensions: null };
+    return { number: null, artist: null, title: filename, medium: null, dimensions: null, flickr_id: null };
   }
 
   const number = parts[0].trim();
@@ -31,6 +31,8 @@ export function parseFilename(filename) {
 
   // Last segment contains dimensions + flickr ID
   const lastPart = parts[parts.length - 1];
+  const flickrMatch = lastPart.match(/_(\d+)_o$/);
+  const flickr_id = flickrMatch ? flickrMatch[1] : null;
   const dimensions = parseDimensions(lastPart);
 
   // Middle segments (between artist and dimensions) contain title + medium
@@ -58,7 +60,7 @@ export function parseFilename(filename) {
   const title = toTitleCase(titleParts.join(' - '));
   const medium = mediumParts.map(toTitleCase).join(', ');
 
-  return { number, artist, title, medium, dimensions };
+  return { number, artist, title, medium, dimensions, flickr_id };
 }
 
 function toTitleCase(str) {

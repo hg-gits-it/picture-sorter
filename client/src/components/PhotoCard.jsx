@@ -1,7 +1,6 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { usePhotos } from "../context/PhotoContext.jsx";
 import { thumbnailUrl } from "../api/photos.js";
-import { parseFilename } from "../utils/parseFilename.js";
 
 export default function PhotoCard({
   photo,
@@ -13,7 +12,6 @@ export default function PhotoCard({
   const { tagPhoto, setSelectedPhoto, reorderPhoto } = usePhotos();
   const [editing, setEditing] = useState(false);
   const inputRef = useRef(null);
-  const meta = useMemo(() => parseFilename(photo.filename), [photo.filename]);
 
   const handleTag = (tag) => {
     if (photo.tag === tag) {
@@ -40,28 +38,28 @@ export default function PhotoCard({
       <div className="photo-card-image" onClick={() => setSelectedPhoto(photo)}>
         <img
           src={thumbnailUrl(photo.filename)}
-          alt={meta.title}
+          alt={photo.title}
           loading="lazy"
         />
         {photo.taken && <div className="photo-card-claimed">Claimed</div>}
       </div>
       <div className="photo-card-info">
         <div className="photo-card-meta">
-          {meta.number && (
-            <span className="photo-card-number">#{meta.number}</span>
+          {photo.number && (
+            <span className="photo-card-number">#{photo.number}</span>
           )}
-          <span className="photo-card-title" title={meta.title}>
-            {meta.title}
+          <span className="photo-card-title" title={photo.title}>
+            {photo.title}
           </span>
-          {meta.artist && (
-            <span className="photo-card-artist">{meta.artist}</span>
+          {photo.artist && (
+            <span className="photo-card-artist">{photo.artist}</span>
           )}
           <span className="photo-card-details">
-            {meta.medium && (
-              <span className="photo-card-medium">{meta.medium}</span>
+            {photo.medium && (
+              <span className="photo-card-medium">{photo.medium}</span>
             )}
-            {meta.dimensions && (
-              <span className="photo-card-dimensions">{meta.dimensions}</span>
+            {photo.dimensions && (
+              <span className="photo-card-dimensions">{photo.dimensions}</span>
             )}
           </span>
         </div>

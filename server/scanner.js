@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { mkdirSync } from 'fs';
 import sharp from 'sharp';
 import db from './db.js';
+import { parseFilename } from './utils/parseFilename.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PHOTOS_DIR = resolve(__dirname, '..', 'photos');
@@ -22,10 +23,15 @@ export async function scanPhotos() {
   const insertStmt = db.prepare(
     'INSERT OR IGNORE INTO photos (filename) VALUES (?)'
   );
+  const updateMetaStmt = db.prepare(
+    'UPDATE photos SET number=?, artist=?, title=?, medium=?, dimensions=?, flickr_id=? WHERE filename=? AND artist IS NULL'
+  );
 
   const insertMany = db.transaction((filenames) => {
     for (const filename of filenames) {
       insertStmt.run(filename);
+      const parsed = parseFilename(filename);
+      updateMetaStmt.run(parsed.number, parsed.artist, parsed.title, parsed.medium, parsed.dimensions, parsed.flickr_id, filename);
     }
   });
 

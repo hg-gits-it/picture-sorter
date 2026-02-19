@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { usePhotos } from "../context/PhotoContext.jsx";
 import { fullImageUrl } from "../api/photos.js";
-import { parseFilename } from "../utils/parseFilename.js";
 
 export default function PhotoModal() {
   const { selectedPhoto, setSelectedPhoto, photos, tagPhoto } = usePhotos();
@@ -11,11 +10,6 @@ export default function PhotoModal() {
         ? photos.find((p) => p.id === selectedPhoto.id) || selectedPhoto
         : null,
     [selectedPhoto, photos],
-  );
-
-  const meta = useMemo(
-    () => (currentPhoto ? parseFilename(currentPhoto.filename) : null),
-    [currentPhoto],
   );
 
   const currentIndex = useMemo(
@@ -59,7 +53,7 @@ export default function PhotoModal() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selectedPhoto, setSelectedPhoto, goToPrev, goToNext]);
 
-  if (!currentPhoto || !meta) return null;
+  if (!currentPhoto) return null;
 
   return (
     <div className="modal-overlay" onClick={() => setSelectedPhoto(null)}>
@@ -75,7 +69,7 @@ export default function PhotoModal() {
         </button>
       )}
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <img src={fullImageUrl(currentPhoto.id)} alt={meta.title} />
+        <img src={fullImageUrl(currentPhoto.id)} alt={currentPhoto.title} />
         <div className="modal-tag-actions">
           <button
             className={`tag-btn love ${currentPhoto.tag === "love" ? "active" : ""}`}
@@ -107,14 +101,14 @@ export default function PhotoModal() {
           </button>
         </div>
         <div className="modal-info">
-          <div className="modal-title">{meta.title}</div>
-          {meta.artist && <div className="modal-artist">{meta.artist}</div>}
+          <div className="modal-title">{currentPhoto.title}</div>
+          {currentPhoto.artist && <div className="modal-artist">{currentPhoto.artist}</div>}
           <div className="modal-details">
-            {meta.medium && <span>{meta.medium}</span>}
-            {meta.medium && meta.dimensions && (
+            {currentPhoto.medium && <span>{currentPhoto.medium}</span>}
+            {currentPhoto.medium && currentPhoto.dimensions && (
               <span className="modal-sep">&middot;</span>
             )}
-            {meta.dimensions && <span>{meta.dimensions}</span>}
+            {currentPhoto.dimensions && <span>{currentPhoto.dimensions}</span>}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { parseFilename } from './utils/parseFilename.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = resolve(__dirname, '..', 'data');
@@ -47,6 +48,30 @@ if (tableInfo && (!tableInfo.sql.includes('tax_deduction') || tableInfo.sql.incl
 const tableInfo2 = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
 if (tableInfo2 && !tableInfo2.sql.includes('taken')) {
   db.exec(`ALTER TABLE photos ADD COLUMN taken INTEGER DEFAULT 0`);
+}
+
+// Migrate: add parsed filename columns if missing
+const tableInfo3 = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='photos'").get();
+if (tableInfo3 && !tableInfo3.sql.includes('artist')) {
+  db.exec(`ALTER TABLE photos ADD COLUMN number TEXT`);
+  db.exec(`ALTER TABLE photos ADD COLUMN artist TEXT`);
+  db.exec(`ALTER TABLE photos ADD COLUMN title TEXT`);
+  db.exec(`ALTER TABLE photos ADD COLUMN medium TEXT`);
+  db.exec(`ALTER TABLE photos ADD COLUMN dimensions TEXT`);
+  db.exec(`ALTER TABLE photos ADD COLUMN flickr_id TEXT`);
+
+  // Backfill existing rows
+  const rows = db.prepare('SELECT id, filename FROM photos WHERE artist IS NULL').all();
+  const updateStmt = db.prepare(
+    'UPDATE photos SET number=?, artist=?, title=?, medium=?, dimensions=?, flickr_id=? WHERE id=?'
+  );
+  const backfill = db.transaction(() => {
+    for (const row of rows) {
+      const parsed = parseFilename(row.filename);
+      updateStmt.run(parsed.number, parsed.artist, parsed.title, parsed.medium, parsed.dimensions, parsed.flickr_id, row.id);
+    }
+  });
+  backfill();
 }
 
 export default db;

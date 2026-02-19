@@ -12,7 +12,6 @@ import {
   thumbnailUrl,
   fullImageUrl,
 } from "../api/photos.js";
-import { parseFilename } from "../utils/parseFilename.js";
 
 export default function ShowtimePage() {
   const [photos, setPhotos] = useState([]);
@@ -54,11 +53,9 @@ export default function ShowtimePage() {
   const photoByNumber = useMemo(() => {
     const map = {};
     for (const photo of photos) {
-      const parsed = parseFilename(photo.filename);
-      if (parsed.number) {
-        // Strip leading zeros for lookup
-        const normalized = String(parseInt(parsed.number, 10));
-        map[normalized] = { ...photo, parsed };
+      if (photo.number) {
+        const normalized = String(parseInt(photo.number, 10));
+        map[normalized] = photo;
       }
     }
     return map;
@@ -87,7 +84,7 @@ export default function ShowtimePage() {
         await restorePhoto(confirmPhoto.id);
       } else {
         await takePhoto(confirmPhoto.id);
-        setToast({ id: confirmPhoto.id, number: confirmPhoto.parsed.number });
+        setToast({ id: confirmPhoto.id, number: confirmPhoto.number });
       }
       setConfirmPhoto(null);
       setInputValue("");
@@ -114,10 +111,6 @@ export default function ShowtimePage() {
     meh: "\u261F",
     tax_deduction: "$",
   };
-
-  function getParsed(photo) {
-    return parseFilename(photo.filename);
-  }
 
   if (loading) {
     return (
@@ -170,52 +163,47 @@ export default function ShowtimePage() {
       {error && <div className="showtime-error">{error}</div>}
 
       <section className="showtime-list">
-        {availablePhotos.map((photo) => {
-          const p = getParsed(photo);
-          return (
+        {availablePhotos.map((photo) => (
             <div key={photo.id} className="showtime-row">
-              <span className="showtime-row-number">#{p.number}</span>
+              <span className="showtime-row-number">#{photo.number}</span>
               <img
                 className="showtime-thumb"
                 src={thumbnailUrl(photo.filename)}
-                alt={p.title}
+                alt={photo.title}
               />
               {photo.tag && (
                 <span className={`showtime-row-tag ${photo.tag}`}>
                   {TAG_ICONS[photo.tag]}
                 </span>
               )}
-              <span className="showtime-row-title">{p.title}</span>
-              <span className="showtime-row-artist">{p.artist}</span>
-              <span className="showtime-row-medium">{p.medium}</span>
-              <span className="showtime-row-dimensions">{p.dimensions}</span>
+              <span className="showtime-row-title">{photo.title}</span>
+              <span className="showtime-row-artist">{photo.artist}</span>
+              <span className="showtime-row-medium">{photo.medium}</span>
+              <span className="showtime-row-dimensions">{photo.dimensions}</span>
             </div>
-          );
-        })}
+          ))}
       </section>
 
       {takenPhotos.length > 0 && (
         <section className="showtime-taken-section" ref={takenRef}>
           <h2 className="showtime-taken-title">Taken</h2>
-          {takenPhotos.map((photo) => {
-            const p = getParsed(photo);
-            return (
+          {takenPhotos.map((photo) => (
               <div key={photo.id} className="showtime-row taken">
-                <span className="showtime-row-number">#{p.number}</span>
+                <span className="showtime-row-number">#{photo.number}</span>
                 <img
                   className="showtime-thumb"
                   src={thumbnailUrl(photo.filename)}
-                  alt={p.title}
+                  alt={photo.title}
                 />
                 {photo.tag && (
                   <span className={`showtime-row-tag ${photo.tag}`}>
                     {TAG_ICONS[photo.tag]}
                   </span>
                 )}
-                <span className="showtime-row-title">{p.title}</span>
-                <span className="showtime-row-artist">{p.artist}</span>
-                <span className="showtime-row-medium">{p.medium}</span>
-                <span className="showtime-row-dimensions">{p.dimensions}</span>
+                <span className="showtime-row-title">{photo.title}</span>
+                <span className="showtime-row-artist">{photo.artist}</span>
+                <span className="showtime-row-medium">{photo.medium}</span>
+                <span className="showtime-row-dimensions">{photo.dimensions}</span>
                 <button
                   className="showtime-restore-btn"
                   onClick={() => handleRestore(photo.id)}
@@ -223,8 +211,7 @@ export default function ShowtimePage() {
                   Restore
                 </button>
               </div>
-            );
-          })}
+            ))}
         </section>
       )}
 
@@ -257,24 +244,24 @@ export default function ShowtimePage() {
           >
             <img
               src={fullImageUrl(confirmPhoto.id)}
-              alt={confirmPhoto.parsed.title}
+              alt={confirmPhoto.title}
             />
             <div className="showtime-confirm-info">
               <div className="showtime-confirm-number">
-                #{confirmPhoto.parsed.number}
+                #{confirmPhoto.number}
               </div>
               <div className="showtime-confirm-title">
-                {confirmPhoto.parsed.title}
+                {confirmPhoto.title}
               </div>
               <div className="showtime-confirm-artist">
-                {confirmPhoto.parsed.artist}
+                {confirmPhoto.artist}
               </div>
               <div className="showtime-confirm-details">
-                {confirmPhoto.parsed.medium}
-                {confirmPhoto.parsed.dimensions && (
+                {confirmPhoto.medium}
+                {confirmPhoto.dimensions && (
                   <span className="modal-sep">|</span>
                 )}
-                {confirmPhoto.parsed.dimensions}
+                {confirmPhoto.dimensions}
               </div>
             </div>
             <div className="showtime-confirm-actions">
