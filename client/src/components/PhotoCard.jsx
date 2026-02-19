@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { usePhotos } from "../context/PhotoContext.jsx";
 import { thumbnailUrl } from "../api/photos.js";
 import { parseFilename } from "../utils/parseFilename.js";
@@ -10,7 +10,9 @@ export default function PhotoCard({
   onDragOver,
   onDrop,
 }) {
-  const { tagPhoto, setSelectedPhoto } = usePhotos();
+  const { tagPhoto, setSelectedPhoto, reorderPhoto } = usePhotos();
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef(null);
   const meta = useMemo(() => parseFilename(photo.filename), [photo.filename]);
 
   const handleTag = (tag) => {
@@ -63,9 +65,43 @@ export default function PhotoCard({
             )}
           </span>
         </div>
-        {photo.global_rank != null && (
-          <span className="photo-card-rank">{photo.global_rank}</span>
-        )}
+        {photo.tag != null &&
+          photo.group_position != null &&
+          (editing ? (
+            <input
+              ref={inputRef}
+              className="photo-card-rank-input"
+              type="number"
+              min={1}
+              defaultValue={photo.group_position}
+              onFocus={(e) => e.target.select()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.target.blur();
+                } else if (e.key === "Escape") {
+                  setEditing(false);
+                }
+              }}
+              onBlur={(e) => {
+                setEditing(false);
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1 && val !== photo.group_position) {
+                  reorderPhoto(photo.id, val);
+                }
+              }}
+            />
+          ) : (
+            <span
+              className="photo-card-rank"
+              onClick={() => {
+                setEditing(true);
+                requestAnimationFrame(() => inputRef.current?.focus());
+              }}
+            >
+              <span className="photo-card-rank-edit-icon">&#9998;</span>
+              {photo.group_position}
+            </span>
+          ))}
       </div>
       <div className="photo-card-actions">
         <button

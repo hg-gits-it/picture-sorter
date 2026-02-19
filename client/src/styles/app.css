@@ -322,6 +322,44 @@ body {
   color: #a0a0b8;
   flex-shrink: 0;
   margin-top: 2px;
+  cursor: pointer;
+}
+
+.photo-card-rank:hover {
+  color: #6c5ce7;
+}
+
+.photo-card-rank-edit-icon {
+  font-size: 0.65rem;
+  margin-left: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.photo-card-rank:hover .photo-card-rank-edit-icon {
+  opacity: 0.7;
+}
+
+.photo-card-rank-input {
+  width: 3em;
+  padding: 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e0e0e0;
+  background: #1a1a2e;
+  border: 1px solid #6c5ce7;
+  border-radius: 4px;
+  outline: none;
+  flex-shrink: 0;
+  margin-top: 2px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.photo-card-rank-input::-webkit-inner-spin-button,
+.photo-card-rank-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .photo-card-actions {
