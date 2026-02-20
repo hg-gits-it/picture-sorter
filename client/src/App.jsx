@@ -17,7 +17,7 @@ function AppContent() {
   const unratedPhotos = photos.filter((p) => p.tag === 'unrated');
 
   // When a specific tag filter is active, show as flat grid
-  const showGrouped = !filterTag || filterTag === null;
+  const showGrouped = filterTag === 'all';
 
   return (
     <div className="app">

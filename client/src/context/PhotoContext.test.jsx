@@ -25,7 +25,7 @@ function TestConsumer({ onContext }) {
     <div>
       <span data-testid="loading">{String(ctx.loading)}</span>
       <span data-testid="count">{ctx.photos.length}</span>
-      <span data-testid="filterTag">{ctx.filterTag ?? 'null'}</span>
+      <span data-testid="filterTag">{ctx.filterTag}</span>
       <span data-testid="searchQuery">{ctx.searchQuery}</span>
       <span data-testid="hideClaimed">{String(ctx.hideClaimed)}</span>
       <span data-testid="selectedPhoto">{ctx.selectedPhoto ? ctx.selectedPhoto.id : 'null'}</span>

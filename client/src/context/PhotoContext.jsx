@@ -6,7 +6,7 @@ const PhotoContext = createContext();
 const initialState = {
   photos: [],
   counts: { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 },
-  filterTag: null,
+  filterTag: 'all',
   searchQuery: '',
   hideClaimed: true,
   selectedPhoto: null,
@@ -44,7 +44,7 @@ export function PhotoProvider({ children }) {
     const { filterTag, searchQuery, hideClaimed } = stateRef.current;
     try {
       const params = {};
-      if (filterTag) params.tag = filterTag;
+      if (filterTag !== 'all') params.tag = filterTag;
       if (searchQuery) params.search = searchQuery;
       if (hideClaimed) params.hideClaimed = true;
       const data = await api.fetchPhotos(params);
