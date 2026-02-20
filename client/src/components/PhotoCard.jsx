@@ -46,7 +46,7 @@ export default function PhotoCard({
       <div className="photo-card-info">
         <div className="photo-card-meta">
           {photo.show_id && (
-            <span className="photo-card-number">#{photo.show_id}</span>
+            <span className="photo-card-show-id">#{photo.show_id}</span>
           )}
           <span className="photo-card-title" title={photo.title}>
             {photo.title}

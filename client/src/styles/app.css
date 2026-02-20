@@ -337,7 +337,7 @@ body {
   flex: 1;
 }
 
-.photo-card-number {
+.photo-card-show-id {
   font-size: 0.7rem;
   color: #6c5ce7;
   font-weight: 600;
@@ -846,7 +846,7 @@ body {
   flex-shrink: 0;
 }
 
-.showtime-row-number {
+.showtime-row-show-id {
   font-size: 0.85rem;
   font-weight: 700;
   color: #6c5ce7;
@@ -970,7 +970,7 @@ body {
   text-align: center;
 }
 
-.showtime-confirm-number {
+.showtime-confirm-show-id {
   font-size: 0.85rem;
   color: #6c5ce7;
   font-weight: 600;
