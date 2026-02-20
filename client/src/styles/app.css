@@ -506,6 +506,12 @@ body {
   text-align: center;
 }
 
+.modal-show-id {
+  font-size: 1.0 rem;
+  color: #6c5ce7;
+  font-weight: 600;
+}
+
 .modal-title {
   font-size: 1.1rem;
   font-weight: 600;
