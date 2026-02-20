@@ -105,13 +105,6 @@ export default function ShowtimePage() {
     }
   }
 
-  const TAG_ICONS = {
-    love: '\u2665',
-    like: '\u261D',
-    meh: '\u261F',
-    tax_deduction: '$',
-  };
-
   if (loading) {
     return (
       <div className="showtime">
@@ -171,11 +164,6 @@ export default function ShowtimePage() {
                 src={thumbnailUrl(photo.flickr_id)}
                 alt={photo.title}
               />
-              {photo.tag && (
-                <span className={`showtime-row-tag ${photo.tag}`}>
-                  {TAG_ICONS[photo.tag]}
-                </span>
-              )}
               <span className="showtime-row-title">{photo.title}</span>
               <span className="showtime-row-artist">{photo.artist}</span>
               <span className="showtime-row-medium">{photo.medium}</span>
@@ -195,11 +183,6 @@ export default function ShowtimePage() {
                   src={thumbnailUrl(photo.flickr_id)}
                   alt={photo.title}
                 />
-                {photo.tag && (
-                  <span className={`showtime-row-tag ${photo.tag}`}>
-                    {TAG_ICONS[photo.tag]}
-                  </span>
-                )}
                 <span className="showtime-row-title">{photo.title}</span>
                 <span className="showtime-row-artist">{photo.artist}</span>
                 <span className="showtime-row-medium">{photo.medium}</span>
