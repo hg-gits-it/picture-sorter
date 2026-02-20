@@ -45,8 +45,7 @@ function AppContent() {
 
         {!loading && photos.length === 0 && (
           <div className="empty-state">
-            No photos found. Place JPEG files in the <code>photos/</code>{' '}
-            directory and click &quot;Scan Photos&quot;.
+            No photos found. Click &quot;Scan Photos&quot;.
           </div>
         )}
 
