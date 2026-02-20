@@ -3,10 +3,10 @@ import { usePhotos } from '../context/PhotoContext.jsx';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'love', label: 'Love', icon: '\u2665' },
-  { key: 'like', label: 'Like', icon: '\u261D' },
-  { key: 'meh', label: 'Meh', icon: '\u261F' },
-  { key: 'tax_deduction', label: 'Tax Deduction', icon: '$' },
+  { key: 'love', label: 'Love', icon: '\u2764\uFE0F' },
+  { key: 'like', label: 'Like', icon: '\uD83D\uDC4D' },
+  { key: 'meh', label: 'Meh', icon: '\uD83D\uDE10' },
+  { key: 'tax_deduction', label: 'Tax Deduction', icon: '\uD83D\uDCB2' },
   { key: 'unrated', label: 'Unrated' },
 ];
 

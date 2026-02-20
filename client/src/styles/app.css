@@ -450,25 +450,21 @@ body {
 .tag-btn.love.active {
   background: rgba(231, 76, 60, 0.2);
   border-color: #e74c3c;
-  color: #e74c3c;
 }
 
 .tag-btn.like.active {
   background: rgba(52, 152, 219, 0.2);
   border-color: #27ae60;
-  color: #27ae60;
 }
 
 .tag-btn.meh.active {
   background: rgba(127, 140, 141, 0.2);
   border-color: #3498db;
-  color: #3498db;
 }
 
 .tag-btn.tax_deduction.active {
   background: rgba(39, 174, 96, 0.2);
   border-color: #7f8c8d;
-  color: #7f8c8d;
 }
 
 /* Modal */

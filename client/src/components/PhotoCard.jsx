@@ -107,28 +107,28 @@ export default function PhotoCard({
           onClick={() => handleTag('love')}
           title="Love"
         >
-          &#9829;
+          &#10084;&#65039;
         </button>
         <button
           className={`tag-btn like ${photo.tag === 'like' ? 'active' : ''}`}
           onClick={() => handleTag('like')}
           title="Like"
         >
-          &#9757;
+          &#128077;
         </button>
         <button
           className={`tag-btn meh ${photo.tag === 'meh' ? 'active' : ''}`}
           onClick={() => handleTag('meh')}
           title="Meh"
         >
-          &#9759;
+          &#128528;
         </button>
         <button
           className={`tag-btn tax_deduction ${photo.tag === 'tax_deduction' ? 'active' : ''}`}
           onClick={() => handleTag('tax_deduction')}
           title="Tax Deduction"
         >
-          $
+          &#128178;
         </button>
       </div>
     </div>
