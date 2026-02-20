@@ -34,10 +34,14 @@ function reducer(state, action) {
 
 export function PhotoProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const searchTimerRef = useRef(null);
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  });
 
-  const loadPhotos = useCallback(async (filterTag, searchQuery, hideClaimed) => {
+  const loadPhotos = useCallback(async () => {
     dispatch({ type: 'SET_LOADING' });
+    const { filterTag, searchQuery, hideClaimed } = stateRef.current;
     try {
       const params = {};
       if (filterTag) params.tag = filterTag;
@@ -52,17 +56,14 @@ export function PhotoProvider({ children }) {
 
   // Reload when filter or hideClaimed changes (immediate)
   useEffect(() => {
-    loadPhotos(state.filterTag, state.searchQuery, state.hideClaimed);
-  }, [state.filterTag, state.hideClaimed]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadPhotos();
+  }, [state.filterTag, state.hideClaimed, loadPhotos]);
 
   // Debounce search
   useEffect(() => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      loadPhotos(state.filterTag, state.searchQuery, state.hideClaimed);
-    }, 300);
-    return () => clearTimeout(searchTimerRef.current);
-  }, [state.searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => loadPhotos(), 300);
+    return () => clearTimeout(timer);
+  }, [state.searchQuery, loadPhotos]);
 
   const setFilterTag = useCallback((tag) => {
     dispatch({ type: 'SET_FILTER_TAG', tag });
@@ -82,18 +83,18 @@ export function PhotoProvider({ children }) {
 
   const tagPhoto = useCallback(async (id, tag) => {
     await api.tagPhoto(id, tag);
-    await loadPhotos(state.filterTag, state.searchQuery, state.hideClaimed);
-  }, [loadPhotos, state.filterTag, state.searchQuery, state.hideClaimed]);
+    await loadPhotos();
+  }, [loadPhotos]);
 
   const reorderPhoto = useCallback(async (id, newPosition) => {
     await api.reorderPhoto(id, newPosition);
-    await loadPhotos(state.filterTag, state.searchQuery, state.hideClaimed);
-  }, [loadPhotos, state.filterTag, state.searchQuery, state.hideClaimed]);
+    await loadPhotos();
+  }, [loadPhotos]);
 
   const scanPhotos = useCallback(async () => {
     await api.triggerScan();
-    await loadPhotos(state.filterTag, state.searchQuery, state.hideClaimed);
-  }, [loadPhotos, state.filterTag, state.searchQuery, state.hideClaimed]);
+    await loadPhotos();
+  }, [loadPhotos]);
 
   const value = {
     ...state,
@@ -104,7 +105,7 @@ export function PhotoProvider({ children }) {
     tagPhoto,
     reorderPhoto,
     scanPhotos,
-    loadPhotos: () => loadPhotos(state.filterTag, state.searchQuery, state.hideClaimed),
+    loadPhotos,
   };
 
   return (
