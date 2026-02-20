@@ -1,5 +1,6 @@
 const API_BASE = '/api';
 
+// Photos API
 export async function fetchPhotos({ tag, search, hideClaimed } = {}) {
   const params = new URLSearchParams();
   if (tag) params.set('tag', tag);
@@ -31,12 +32,6 @@ export async function reorderPhoto(id, newPosition) {
   return res.json();
 }
 
-export async function triggerScan() {
-  const res = await fetch(`${API_BASE}/scan`, { method: 'POST' });
-  if (!res.ok) throw new Error('Scan failed');
-  return res.json();
-}
-
 export function thumbnailUrl(flickrId) {
   return `/thumbnails/${encodeURIComponent(flickrId)}.jpg`;
 }
@@ -45,10 +40,20 @@ export function fullImageUrl(id) {
   return `${API_BASE}/photos/${id}/full`;
 }
 
+// Scan API
+export async function triggerScan() {
+  const res = await fetch(`${API_BASE}/scan`, { method: 'POST' });
+  if (!res.ok) throw new Error('Scan failed');
+  return res.json();
+}
+
+
+// Submit API
 export function submitUrl(codename) {
   return `${API_BASE}/submit?codename=${encodeURIComponent(codename)}`;
 }
 
+// Showtime API
 export async function fetchShowtimePhotos() {
   const res = await fetch(`${API_BASE}/showtime/photos`);
   if (!res.ok) throw new Error('Failed to fetch showtime photos');

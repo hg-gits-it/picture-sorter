@@ -17,7 +17,7 @@ function AppContent() {
   const unratedPhotos = photos.filter((p) => p.tag === 'unrated');
 
   // When a specific tag filter is active, show as flat grid
-  const showGrouped = !filterTag || filterTag === null;
+  const showGrouped = filterTag === 'all';
 
   return (
     <div className="app">
@@ -45,8 +45,7 @@ function AppContent() {
 
         {!loading && photos.length === 0 && (
           <div className="empty-state">
-            No photos found. Place JPEG files in the <code>photos/</code>{' '}
-            directory and click &quot;Scan Photos&quot;.
+            No photos found. Click &quot;Scan Photos&quot;.
           </div>
         )}
 

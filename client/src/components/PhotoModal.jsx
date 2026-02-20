@@ -101,6 +101,9 @@ export default function PhotoModal() {
           </button>
         </div>
         <div className="modal-info">
+          {currentPhoto.show_id && (
+            <span className="modal-show-id">#{currentPhoto.show_id}</span>
+          )}
           <div className="modal-title">{currentPhoto.title}</div>
           {currentPhoto.artist && <div className="modal-artist">{currentPhoto.artist}</div>}
           <div className="modal-details">

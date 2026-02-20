@@ -9,4 +9,8 @@ export default defineConfig({
       '/thumbnails': 'http://localhost:3001',
     },
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.js'],
+  },
 });

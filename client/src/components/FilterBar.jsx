@@ -2,7 +2,7 @@ import React from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
 
 const FILTERS = [
-  { key: null, label: 'All' },
+  { key: 'all', label: 'All' },
   { key: 'love', label: 'Love', icon: '\u2665' },
   { key: 'like', label: 'Like', icon: '\u261D' },
   { key: 'meh', label: 'Meh', icon: '\u261F' },
@@ -15,7 +15,7 @@ export default function FilterBar() {
     usePhotos();
 
   const getCount = (key) => {
-    if (key === null) return counts.total;
+    if (key === 'all') return counts.total;
     return counts[key] || 0;
   };
 
@@ -26,7 +26,7 @@ export default function FilterBar() {
           {FILTERS.map(({ key, label, icon }) => (
             <button
               key={label}
-              className={`filter-btn ${filterTag === key ? 'active' : ''} ${key ? 'filter-' + key : 'filter-all'}`}
+              className={`filter-btn ${filterTag === key ? 'active' : ''} filter-${key}`}
               onClick={() => setFilterTag(key)}
             >
               {icon && <span className="filter-icon">{icon}</span>}

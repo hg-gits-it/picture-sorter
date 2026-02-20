@@ -105,13 +105,6 @@ export default function ShowtimePage() {
     }
   }
 
-  const TAG_ICONS = {
-    love: '\u2665',
-    like: '\u261D',
-    meh: '\u261F',
-    tax_deduction: '$',
-  };
-
   if (loading) {
     return (
       <div className="showtime">
@@ -165,17 +158,12 @@ export default function ShowtimePage() {
       <section className="showtime-list">
         {availablePhotos.map((photo) => (
             <div key={photo.id} className="showtime-row">
-              <span className="showtime-row-number">#{photo.show_id}</span>
+              <span className="showtime-row-show-id">#{photo.show_id}</span>
               <img
                 className="showtime-thumb"
                 src={thumbnailUrl(photo.flickr_id)}
                 alt={photo.title}
               />
-              {photo.tag && (
-                <span className={`showtime-row-tag ${photo.tag}`}>
-                  {TAG_ICONS[photo.tag]}
-                </span>
-              )}
               <span className="showtime-row-title">{photo.title}</span>
               <span className="showtime-row-artist">{photo.artist}</span>
               <span className="showtime-row-medium">{photo.medium}</span>
@@ -189,17 +177,12 @@ export default function ShowtimePage() {
           <h2 className="showtime-taken-title">Taken</h2>
           {takenPhotos.map((photo) => (
               <div key={photo.id} className="showtime-row taken">
-                <span className="showtime-row-number">#{photo.show_id}</span>
+                <span className="showtime-row-show-id">#{photo.show_id}</span>
                 <img
                   className="showtime-thumb"
                   src={thumbnailUrl(photo.flickr_id)}
                   alt={photo.title}
                 />
-                {photo.tag && (
-                  <span className={`showtime-row-tag ${photo.tag}`}>
-                    {TAG_ICONS[photo.tag]}
-                  </span>
-                )}
                 <span className="showtime-row-title">{photo.title}</span>
                 <span className="showtime-row-artist">{photo.artist}</span>
                 <span className="showtime-row-medium">{photo.medium}</span>
@@ -247,7 +230,7 @@ export default function ShowtimePage() {
               alt={confirmPhoto.title}
             />
             <div className="showtime-confirm-info">
-              <div className="showtime-confirm-number">
+              <div className="showtime-confirm-show-id">
                 #{confirmPhoto.show_id}
               </div>
               <div className="showtime-confirm-title">
