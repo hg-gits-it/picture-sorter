@@ -115,8 +115,7 @@ export default function SubmitModal({ open, onClose }) {
         {state === 'idle' && (
           <>
             <p className="submit-modal-desc">
-              Submit your Love, Like, and Meh artworks (in ranked order) to the
-              Patrons&apos; Show website.
+              Submit your rated artworks (in ranked order) to the show.
             </p>
             <input
               className="submit-modal-input"
