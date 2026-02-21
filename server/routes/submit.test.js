@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import express from 'express';
 import request from 'supertest';
 import db from '../db.js';
-import submitRouter from './submit.js';
+import submitRouter, { extractCsrfToken, extractCookies, createSession, getSubmittablePhotos } from './submit.js';
 
 const app = express();
 app.use(express.json());
@@ -134,6 +134,119 @@ function createMockFetch(overrides = {}) {
     return { ok: true, text: async () => '', headers: new Headers() };
   };
 }
+
+
+describe('extractCsrfToken', () => {
+  it('extracts token from hidden input', () => {
+    const html = '<input type="hidden" name="_token" value="abc123">';
+    assert.equal(extractCsrfToken(html), 'abc123');
+  });
+
+  it('falls back to meta tag', () => {
+    const html = '<meta name="csrf-token" content="meta456">';
+    assert.equal(extractCsrfToken(html), 'meta456');
+  });
+
+  it('prefers hidden input over meta tag', () => {
+    const html = `
+      <meta name="csrf-token" content="meta-token">
+      <input type="hidden" name="_token" value="input-token">
+    `;
+    assert.equal(extractCsrfToken(html), 'input-token');
+  });
+
+  it('returns null when no token found', () => {
+    assert.equal(extractCsrfToken('<html>no token</html>'), null);
+  });
+});
+
+describe('extractCookies', () => {
+  it('parses set-cookie headers into cookie string', () => {
+    const response = {
+      headers: { getSetCookie: () => ['session=abc; Path=/; HttpOnly', 'theme=dark; Path=/'] },
+    };
+    const result = extractCookies(response);
+    assert.equal(result, 'session=abc; theme=dark');
+  });
+
+  it('merges with existing cookies', () => {
+    const response = {
+      headers: { getSetCookie: () => ['new=val'] },
+    };
+    const result = extractCookies(response, 'existing=old');
+    assert.ok(result.includes('existing=old'));
+    assert.ok(result.includes('new=val'));
+  });
+
+  it('overwrites existing cookies with same name', () => {
+    const response = {
+      headers: { getSetCookie: () => ['session=updated'] },
+    };
+    const result = extractCookies(response, 'session=old; other=keep');
+    assert.ok(result.includes('session=updated'));
+    assert.ok(result.includes('other=keep'));
+    assert.ok(!result.includes('session=old'));
+  });
+
+  it('returns empty string when no cookies', () => {
+    const response = { headers: { getSetCookie: () => [] } };
+    assert.equal(extractCookies(response), '');
+  });
+
+  it('handles missing getSetCookie gracefully', () => {
+    const response = { headers: {} };
+    assert.equal(extractCookies(response), '');
+  });
+});
+
+describe('createSession', () => {
+  it('returns an object with empty cookies and null token', () => {
+    const session = createSession();
+    assert.equal(session.cookies, '');
+    assert.equal(session.token, null);
+  });
+});
+
+describe('getSubmittablePhotos', () => {
+  beforeEach(clearPhotos);
+  afterEach(clearPhotos);
+
+  it('returns love, like, and meh photos in priority order', () => {
+    insertPhoto({ filename: 'meh.jpg', tag: 'meh', group_position: 1, show_id: '3' });
+    insertPhoto({ filename: 'love.jpg', tag: 'love', group_position: 1, show_id: '1' });
+    insertPhoto({ filename: 'like.jpg', tag: 'like', group_position: 1, show_id: '2' });
+
+    const photos = getSubmittablePhotos();
+    assert.equal(photos.length, 3);
+    assert.equal(photos[0].tag, 'love');
+    assert.equal(photos[1].tag, 'like');
+    assert.equal(photos[2].tag, 'meh');
+  });
+
+  it('excludes tax_deduction and unrated photos', () => {
+    insertPhoto({ filename: 'love.jpg', tag: 'love', group_position: 1, show_id: '1' });
+    insertPhoto({ filename: 'tax.jpg', tag: 'tax_deduction', group_position: 1, show_id: '2' });
+    insertPhoto({ filename: 'unrated.jpg', show_id: '3' });
+
+    const photos = getSubmittablePhotos();
+    assert.equal(photos.length, 1);
+    assert.equal(photos[0].tag, 'love');
+  });
+
+  it('orders by group_position within same tag', () => {
+    insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 2, show_id: '1' });
+    insertPhoto({ filename: 'b.jpg', tag: 'love', group_position: 1, show_id: '2' });
+
+    const photos = getSubmittablePhotos();
+    assert.equal(photos[0].group_position, 1);
+    assert.equal(photos[1].group_position, 2);
+  });
+
+  it('returns empty array when no matching photos', () => {
+    insertPhoto({ filename: 'unrated.jpg', show_id: '1' });
+    assert.equal(getSubmittablePhotos().length, 0);
+  });
+});
 
 describe('GET /api/submit', () => {
   let originalFetch;
