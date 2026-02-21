@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db.js';
+import { tagPrioritySQL } from '../utils/tagPriority.js';
 
 const router = Router();
 
@@ -152,11 +153,7 @@ router.get('/', async (req, res) => {
       SELECT * FROM photos
       WHERE tag IN ('love', 'like', 'meh')
       ORDER BY
-        CASE tag
-          WHEN 'love' THEN 1
-          WHEN 'like' THEN 2
-          WHEN 'meh' THEN 3
-        END,
+        ${tagPrioritySQL()},
         group_position
     `).all();
 

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import db from '../db.js';
+import { tagPrioritySQL } from '../utils/tagPriority.js';
 
 const router = Router();
 
@@ -11,15 +12,15 @@ router.get('/', (req, res) => {
        WHERE p2.tag != 'unrated'
          AND p2.group_position IS NOT NULL
          AND (
-           CASE p2.tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END
-           < CASE photos.tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END
+           ${tagPrioritySQL('p2.tag')}
+           < ${tagPrioritySQL('photos.tag')}
          )
       ) + group_position as global_rank
     FROM photos
     WHERE tag != 'unrated' AND group_position IS NOT NULL
     ORDER BY
       taken,
-      CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END,
+      ${tagPrioritySQL()},
       group_position
   `).all();
 

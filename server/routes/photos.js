@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import db from '../db.js';
+import { TAG_PRIORITY, tagPrioritySQL } from '../utils/tagPriority.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..', '..');
@@ -43,8 +44,8 @@ router.get('/', (req, res) => {
            WHERE p2.tag != 'unrated'
              AND p2.group_position IS NOT NULL
              AND (
-               CASE p2.tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END
-               < CASE photos.tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 END
+               ${tagPrioritySQL('p2.tag')}
+               < ${tagPrioritySQL('photos.tag')}
              )
           ) + group_position
         ELSE NULL
@@ -53,7 +54,7 @@ router.get('/', (req, res) => {
     ${whereClause}
     ORDER BY
       CASE WHEN tag = 'unrated' THEN 1 ELSE 0 END,
-      CASE tag WHEN 'love' THEN 1 WHEN 'like' THEN 2 WHEN 'meh' THEN 3 WHEN 'tax_deduction' THEN 4 ELSE 5 END,
+      ${tagPrioritySQL()},
       group_position,
       CAST(show_id AS INTEGER)
   `;
@@ -108,8 +109,7 @@ router.patch('/:id/tag', (req, res) => {
     }
 
     if (tag !== 'unrated') {
-      const priority = { love: 1, like: 2, meh: 3, tax_deduction: 4 };
-      const demoting = oldTag !== 'unrated' && priority[oldTag] < priority[tag];
+      const demoting = oldTag !== 'unrated' && TAG_PRIORITY[oldTag] < TAG_PRIORITY[tag];
 
       let newPosition;
       if (demoting) {
