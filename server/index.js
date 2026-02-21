@@ -1,11 +1,16 @@
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
+import SqliteStore from 'better-sqlite3-session-store';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import db from './db.js';
+import authRouter from './routes/auth.js';
 import photosRouter from './routes/photos.js';
 import submitRouter from './routes/submit.js';
 import showtimeRouter from './routes/showtime.js';
 import scanRouter from './routes/scan.js';
+import { requireAuth, requireAdmin } from './middleware/auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const THUMBNAILS_DIR = resolve(__dirname, '..', 'data', 'thumbnails');
@@ -17,14 +22,29 @@ const CLIENT_DIST = resolve(__dirname, '..', 'client', 'dist');
 app.use(cors());
 app.use(express.json());
 
+// Session middleware
+const BetterSqliteStore = SqliteStore(session);
+app.use(session({
+  store: new BetterSqliteStore({ client: db, expired: { clear: true, intervalMs: 900000 } }),
+  secret: process.env.SESSION_SECRET || 'picture-sorter-dev-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    httpOnly: true,
+    sameSite: 'lax',
+  },
+}));
+
 // Serve thumbnails as static files
 app.use('/thumbnails', express.static(THUMBNAILS_DIR));
 
 // API routes
-app.use('/api/photos', photosRouter);
-app.use('/api/submit', submitRouter);
-app.use('/api/showtime/photos', showtimeRouter);
-app.use('/api/scan', scanRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/photos', requireAuth, photosRouter);
+app.use('/api/submit', requireAdmin, submitRouter);
+app.use('/api/showtime/photos', requireAdmin, showtimeRouter);
+app.use('/api/scan', requireAdmin, scanRouter);
 
 // Serve built frontend
 app.use(express.static(CLIENT_DIST));

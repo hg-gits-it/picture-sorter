@@ -19,5 +19,10 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.3.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3-session-store": "^0.1.0",
+    "express-session": "^1.19.0"
   }
 }
