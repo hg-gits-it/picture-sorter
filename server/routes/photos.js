@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import db from '../db.js';
+import db, { getPhotoById, getPhotoFilenameById } from '../db.js';
 import { TAG_PRIORITY, tagPrioritySQL } from '../utils/tagPriority.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -86,7 +86,7 @@ router.patch('/:id/tag', (req, res) => {
   const { id } = req.params;
   const tag = req.body.tag ?? 'unrated'; // normalize null to 'unrated'
 
-  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const photo = getPhotoById(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
   const validTags = ['love', 'like', 'meh', 'tax_deduction', 'unrated'];
@@ -144,7 +144,7 @@ router.patch('/:id/tag', (req, res) => {
 
   updateTag();
 
-  const updated = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const updated = getPhotoById(id);
   res.json(updated);
 });
 
@@ -153,7 +153,7 @@ router.patch('/:id/reorder', (req, res) => {
   const { id } = req.params;
   const { newPosition } = req.body;
 
-  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const photo = getPhotoById(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
   if (photo.tag === 'unrated')
     return res.status(400).json({ error: 'Cannot reorder unrated photo' });
@@ -188,14 +188,14 @@ router.patch('/:id/reorder', (req, res) => {
 
   reorder();
 
-  const updated = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const updated = getPhotoById(id);
   res.json(updated);
 });
 
 // GET /api/photos/:id/full — serve full-size photo
 router.get('/:id/full', (req, res) => {
   const { id } = req.params;
-  const photo = db.prepare('SELECT filename FROM photos WHERE id = ?').get(id);
+  const photo = getPhotoFilenameById(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
 
   res.sendFile(resolve(PROJECT_ROOT, photo.filename));

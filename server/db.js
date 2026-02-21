@@ -30,4 +30,16 @@ db.exec(`
   )
 `);
 
+// Prepared query helpers for common operations
+const _getPhotoById = db.prepare('SELECT * FROM photos WHERE id = ?');
+const _getPhotoFilenameById = db.prepare('SELECT filename FROM photos WHERE id = ?');
+
+export function getPhotoById(id) {
+  return _getPhotoById.get(id);
+}
+
+export function getPhotoFilenameById(id) {
+  return _getPhotoFilenameById.get(id);
+}
+
 export default db;

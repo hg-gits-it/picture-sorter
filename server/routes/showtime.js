@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import db from '../db.js';
+import db, { getPhotoById } from '../db.js';
 import { tagPrioritySQL } from '../utils/tagPriority.js';
 
 const router = Router();
@@ -31,14 +31,14 @@ router.get('/', (req, res) => {
 router.patch('/:id/take', (req, res) => {
   const { id } = req.params;
 
-  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const photo = getPhotoById(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
   if (photo.tag === 'unrated') return res.status(400).json({ error: 'Photo is not tagged' });
   if (photo.taken) return res.status(400).json({ error: 'Photo is already taken' });
 
   db.prepare('UPDATE photos SET taken = 1 WHERE id = ?').run(id);
 
-  const updated = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const updated = getPhotoById(id);
   res.json(updated);
 });
 
@@ -46,13 +46,13 @@ router.patch('/:id/take', (req, res) => {
 router.patch('/:id/restore', (req, res) => {
   const { id } = req.params;
 
-  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const photo = getPhotoById(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
   if (!photo.taken) return res.status(400).json({ error: 'Photo is not taken' });
 
   db.prepare('UPDATE photos SET taken = 0 WHERE id = ?').run(id);
 
-  const updated = db.prepare('SELECT * FROM photos WHERE id = ?').get(id);
+  const updated = getPhotoById(id);
   res.json(updated);
 });
 
