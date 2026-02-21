@@ -1,12 +1,6 @@
 import React from 'react';
 import PhotoGrid from './PhotoGrid.jsx';
-
-const TAG_LABELS = {
-  love: 'Love',
-  like: 'Like',
-  meh: 'Meh',
-  tax_deduction: 'Tax Deduction',
-};
+import { TAG_LABELS } from '../constants/tags.js';
 
 export default function TagGroup({ tag, photos }) {
   if (photos.length === 0) return null;

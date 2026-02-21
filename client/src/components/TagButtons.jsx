@@ -1,9 +1,4 @@
-const TAGS = [
-  { key: 'love', label: 'Love', icon: '\u2764\uFE0F' },
-  { key: 'like', label: 'Like', icon: '\uD83D\uDC4D' },
-  { key: 'meh', label: 'Meh', icon: '\uD83D\uDE10' },
-  { key: 'tax_deduction', label: 'Tax Deduction', icon: '\uD83D\uDCB2' },
-];
+import { TAGS } from '../constants/tags.js';
 
 export default function TagButtons({ currentTag, onTag }) {
   return TAGS.map(({ key, label, icon }) => (

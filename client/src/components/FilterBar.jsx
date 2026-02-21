@@ -1,12 +1,10 @@
 import React from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
+import { TAGS } from '../constants/tags.js';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'love', label: 'Love', icon: '\u2764\uFE0F' },
-  { key: 'like', label: 'Like', icon: '\uD83D\uDC4D' },
-  { key: 'meh', label: 'Meh', icon: '\uD83D\uDE10' },
-  { key: 'tax_deduction', label: 'Tax Deduction', icon: '\uD83D\uDCB2' },
+  ...TAGS,
   { key: 'unrated', label: 'Unrated' },
 ];
 
