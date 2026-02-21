@@ -10,6 +10,10 @@ import {
   fetchShowtimePhotos,
   takePhoto,
   restorePhoto,
+  login,
+  register,
+  logout,
+  fetchMe,
 } from './photos.js';
 
 function mockFetch(body, ok = true, status = 200) {
@@ -30,7 +34,7 @@ describe('fetchPhotos', () => {
 
     const result = await fetchPhotos();
 
-    expect(fetch).toHaveBeenCalledWith('/api/photos');
+    expect(fetch).toHaveBeenCalledWith('/api/photos', { credentials: 'include' });
     expect(result).toEqual({ photos: [], counts: {} });
   });
 
@@ -39,7 +43,7 @@ describe('fetchPhotos', () => {
 
     await fetchPhotos({ tag: 'love' });
 
-    expect(fetch).toHaveBeenCalledWith('/api/photos?tag=love');
+    expect(fetch).toHaveBeenCalledWith('/api/photos?tag=love', { credentials: 'include' });
   });
 
   it('includes search param', async () => {
@@ -47,7 +51,7 @@ describe('fetchPhotos', () => {
 
     await fetchPhotos({ search: 'sunset' });
 
-    expect(fetch).toHaveBeenCalledWith('/api/photos?search=sunset');
+    expect(fetch).toHaveBeenCalledWith('/api/photos?search=sunset', { credentials: 'include' });
   });
 
   it('includes hideClaimed param', async () => {
@@ -55,7 +59,7 @@ describe('fetchPhotos', () => {
 
     await fetchPhotos({ hideClaimed: true });
 
-    expect(fetch).toHaveBeenCalledWith('/api/photos?hideClaimed=1');
+    expect(fetch).toHaveBeenCalledWith('/api/photos?hideClaimed=1', { credentials: 'include' });
   });
 
   it('includes all params together', async () => {
@@ -65,6 +69,7 @@ describe('fetchPhotos', () => {
 
     expect(fetch).toHaveBeenCalledWith(
       '/api/photos?tag=love&search=test&hideClaimed=1',
+      { credentials: 'include' },
     );
   });
 
@@ -82,6 +87,7 @@ describe('tagPhoto', () => {
     const result = await tagPhoto(1, 'love');
 
     expect(fetch).toHaveBeenCalledWith('/api/photos/1/tag', {
+      credentials: 'include',
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tag: 'love' }),
@@ -103,6 +109,7 @@ describe('reorderPhoto', () => {
     const result = await reorderPhoto(1, 3);
 
     expect(fetch).toHaveBeenCalledWith('/api/photos/1/reorder', {
+      credentials: 'include',
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newPosition: 3 }),
@@ -139,7 +146,7 @@ describe('triggerScan', () => {
 
     const result = await triggerScan();
 
-    expect(fetch).toHaveBeenCalledWith('/api/scan', { method: 'POST' });
+    expect(fetch).toHaveBeenCalledWith('/api/scan', { credentials: 'include', method: 'POST' });
     expect(result.scanned).toBe(10);
   });
 
@@ -167,7 +174,7 @@ describe('fetchShowtimePhotos', () => {
 
     const result = await fetchShowtimePhotos();
 
-    expect(fetch).toHaveBeenCalledWith('/api/showtime/photos');
+    expect(fetch).toHaveBeenCalledWith('/api/showtime/photos', { credentials: 'include' });
     expect(result.photos).toHaveLength(1);
   });
 
@@ -187,6 +194,7 @@ describe('takePhoto', () => {
     const result = await takePhoto(1);
 
     expect(fetch).toHaveBeenCalledWith('/api/showtime/photos/1/take', {
+      credentials: 'include',
       method: 'PATCH',
     });
     expect(result.taken).toBe(1);
@@ -220,6 +228,7 @@ describe('restorePhoto', () => {
     const result = await restorePhoto(1);
 
     expect(fetch).toHaveBeenCalledWith('/api/showtime/photos/1/restore', {
+      credentials: 'include',
       method: 'PATCH',
     });
     expect(result.taken).toBe(0);
@@ -243,5 +252,69 @@ describe('restorePhoto', () => {
     });
 
     await expect(restorePhoto(1)).rejects.toThrow('Failed to restore photo');
+  });
+});
+
+describe('login', () => {
+  it('sends POST with credentials', async () => {
+    globalThis.fetch = mockFetch({ id: 1, username: 'alice', isAdmin: false });
+
+    const result = await login('alice', 'pass');
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/login', {
+      credentials: 'include',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'alice', password: 'pass' }),
+    });
+    expect(result.username).toBe('alice');
+  });
+});
+
+describe('register', () => {
+  it('sends POST with credentials', async () => {
+    globalThis.fetch = mockFetch({ id: 1, username: 'bob', isAdmin: true });
+
+    const result = await register('bob', 'pass');
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/register', {
+      credentials: 'include',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'bob', password: 'pass' }),
+    });
+    expect(result.isAdmin).toBe(true);
+  });
+});
+
+describe('logout', () => {
+  it('sends POST to logout', async () => {
+    globalThis.fetch = mockFetch({ ok: true });
+
+    await logout();
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/logout', {
+      credentials: 'include',
+      method: 'POST',
+    });
+  });
+});
+
+describe('fetchMe', () => {
+  it('returns user data when authenticated', async () => {
+    globalThis.fetch = mockFetch({ id: 1, username: 'alice', isAdmin: false });
+
+    const result = await fetchMe();
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/me', { credentials: 'include' });
+    expect(result.username).toBe('alice');
+  });
+
+  it('returns null when not authenticated', async () => {
+    globalThis.fetch = mockFetch({}, false, 401);
+
+    const result = await fetchMe();
+
+    expect(result).toBeNull();
   });
 });

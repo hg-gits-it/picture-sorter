@@ -3,10 +3,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import App from './App.jsx';
 import { usePhotos } from './context/PhotoContext.jsx';
+import { useAuth } from './context/AuthContext.jsx';
 
 vi.mock('./context/PhotoContext.jsx', () => ({
   PhotoProvider: ({ children }) => <div data-testid="provider">{children}</div>,
   usePhotos: vi.fn(),
+}));
+
+vi.mock('./context/AuthContext.jsx', () => ({
+  AuthProvider: ({ children }) => <div>{children}</div>,
+  useAuth: vi.fn(),
 }));
 
 vi.mock('./components/FilterBar.jsx', () => ({
@@ -50,9 +56,13 @@ const baseContext = {
   filterTag: 'all',
 };
 
+const adminUser = { id: 1, username: 'admin', isAdmin: true };
+const regularUser = { id: 2, username: 'user', isAdmin: false };
+
 beforeEach(() => {
   vi.restoreAllMocks();
   usePhotos.mockReturnValue({ ...baseContext });
+  useAuth.mockReturnValue({ user: adminUser, logout: vi.fn() });
   cleanup();
 });
 
@@ -111,5 +121,29 @@ describe('App layout', () => {
 
     // When filtered, TagGroup receives the full photos array (API already filters)
     expect(screen.getByTestId('tag-group-like')).toHaveAttribute('data-count', '7');
+  });
+});
+
+describe('Admin vs regular user', () => {
+  it('shows Scan and Submit buttons for admin users', () => {
+    render(<App />);
+
+    expect(screen.getByText('Scan Photos')).toBeInTheDocument();
+    expect(screen.getByText('Submit to Show')).toBeInTheDocument();
+  });
+
+  it('hides Scan and Submit buttons for non-admin users', () => {
+    useAuth.mockReturnValue({ user: regularUser, logout: vi.fn() });
+    render(<App />);
+
+    expect(screen.queryByText('Scan Photos')).not.toBeInTheDocument();
+    expect(screen.queryByText('Submit to Show')).not.toBeInTheDocument();
+  });
+
+  it('displays username and logout button', () => {
+    render(<App />);
+
+    expect(screen.getByText('admin')).toBeInTheDocument();
+    expect(screen.getByText('Log Out')).toBeInTheDocument();
   });
 });

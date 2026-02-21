@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PhotoProvider, usePhotos } from './context/PhotoContext.jsx';
+import { useAuth } from './context/AuthContext.jsx';
 import FilterBar from './components/FilterBar.jsx';
 import TagGroup from './components/TagGroup.jsx';
 import UnratedSection from './components/UnratedSection.jsx';
@@ -8,6 +9,7 @@ import SubmitModal from './components/SubmitModal.jsx';
 
 function AppContent() {
   const { photos, scanPhotos, loading, filterTag } = usePhotos();
+  const { user, logout } = useAuth();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
 
   const lovePhotos = photos.filter((p) => p.tag === 'love');
@@ -24,14 +26,22 @@ function AppContent() {
       <header className="app-header">
         <h1>Art Sorter</h1>
         <div className="header-actions">
-          <button className="scan-btn" onClick={scanPhotos}>
-            Scan Photos
-          </button>
-          <button
-            className="submit-btn"
-            onClick={() => setSubmitModalOpen(true)}
-          >
-            Submit to Show
+          {user.isAdmin && (
+            <>
+              <button className="scan-btn" onClick={scanPhotos}>
+                Scan Photos
+              </button>
+              <button
+                className="submit-btn"
+                onClick={() => setSubmitModalOpen(true)}
+              >
+                Submit to Show
+              </button>
+            </>
+          )}
+          <span className="user-info">{user.username}</span>
+          <button className="logout-btn" onClick={logout}>
+            Log Out
           </button>
         </div>
       </header>
