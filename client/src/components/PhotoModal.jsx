@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useCallback } from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
 import { fullImageUrl } from '../api/photos.js';
+import TagButtons from './TagButtons.jsx';
 
 export default function PhotoModal() {
   const { selectedPhoto, setSelectedPhoto, photos, tagPhoto } = usePhotos();
@@ -71,34 +72,7 @@ export default function PhotoModal() {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <img src={fullImageUrl(currentPhoto.id)} alt={currentPhoto.title} />
         <div className="modal-tag-actions">
-          <button
-            className={`tag-btn love ${currentPhoto.tag === 'love' ? 'active' : ''}`}
-            onClick={() => handleTag('love')}
-            title="Love"
-          >
-            &#10084;&#65039;
-          </button>
-          <button
-            className={`tag-btn like ${currentPhoto.tag === 'like' ? 'active' : ''}`}
-            onClick={() => handleTag('like')}
-            title="Like"
-          >
-            &#128077;
-          </button>
-          <button
-            className={`tag-btn meh ${currentPhoto.tag === 'meh' ? 'active' : ''}`}
-            onClick={() => handleTag('meh')}
-            title="Meh"
-          >
-            &#128528;
-          </button>
-          <button
-            className={`tag-btn tax_deduction ${currentPhoto.tag === 'tax_deduction' ? 'active' : ''}`}
-            onClick={() => handleTag('tax_deduction')}
-            title="Tax Deduction"
-          >
-            &#128178;
-          </button>
+          <TagButtons currentTag={currentPhoto.tag} onTag={handleTag} />
         </div>
         <div className="modal-info">
           {currentPhoto.show_id && (

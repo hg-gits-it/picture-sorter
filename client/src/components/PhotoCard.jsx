@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
 import { thumbnailUrl } from '../api/photos.js';
+import TagButtons from './TagButtons.jsx';
 
 export default function PhotoCard({
   photo,
@@ -102,34 +103,7 @@ export default function PhotoCard({
           ))}
       </div>
       <div className="photo-card-actions">
-        <button
-          className={`tag-btn love ${photo.tag === 'love' ? 'active' : ''}`}
-          onClick={() => handleTag('love')}
-          title="Love"
-        >
-          &#10084;&#65039;
-        </button>
-        <button
-          className={`tag-btn like ${photo.tag === 'like' ? 'active' : ''}`}
-          onClick={() => handleTag('like')}
-          title="Like"
-        >
-          &#128077;
-        </button>
-        <button
-          className={`tag-btn meh ${photo.tag === 'meh' ? 'active' : ''}`}
-          onClick={() => handleTag('meh')}
-          title="Meh"
-        >
-          &#128528;
-        </button>
-        <button
-          className={`tag-btn tax_deduction ${photo.tag === 'tax_deduction' ? 'active' : ''}`}
-          onClick={() => handleTag('tax_deduction')}
-          title="Tax Deduction"
-        >
-          &#128178;
-        </button>
+        <TagButtons currentTag={photo.tag} onTag={handleTag} />
       </div>
     </div>
   );
