@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import db, { getPhotoById, getPhotoFilenameById } from '../db.js';
+import db, { getPhotoById, getPhotoFilenameById, getUserPhoto } from '../db.js';
 import { TAG_PRIORITY, tagPrioritySQL } from '../utils/tagPriority.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -9,85 +9,92 @@ const PROJECT_ROOT = resolve(__dirname, '..', '..');
 
 const router = Router();
 
-// GET /api/photos — list photos with computed global rank
+// GET /api/photos — list photos with computed global rank (per-user ratings)
 router.get('/', (req, res) => {
+  const userId = req.session.userId;
   const { tag, search, hideClaimed } = req.query;
 
   let where = [];
-  let params = [];
+  let whereParams = [];
 
   if (tag) {
-    where.push('tag = ?');
-    params.push(tag);
+    where.push('COALESCE(ur.tag, \'unrated\') = ?');
+    whereParams.push(tag);
   }
 
   if (search) {
     where.push(
-      '(show_id LIKE ? OR artist LIKE ? OR title LIKE ? OR medium LIKE ?)',
+      '(p.show_id LIKE ? OR p.artist LIKE ? OR p.title LIKE ? OR p.medium LIKE ?)',
     );
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    whereParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
   }
 
   if (hideClaimed === '1') {
-    where.push('taken = 0');
+    where.push('p.taken = 0');
   }
 
   const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
 
-  // Compute global rank using window functions
-  // Priority: love=1, like=2, meh=3, tax_deduction=4, null=5
   const sql = `
-    SELECT *,
+    SELECT p.id, p.filename, p.taken, p.show_id, p.artist, p.title,
+           p.medium, p.dimensions, p.flickr_id, p.created_at,
+           COALESCE(ur.tag, 'unrated') as tag, ur.group_position,
       CASE
-        WHEN tag != 'unrated' AND group_position IS NOT NULL THEN
-          (SELECT COUNT(*) FROM photos p2
-           WHERE p2.tag != 'unrated'
-             AND p2.group_position IS NOT NULL
+        WHEN COALESCE(ur.tag, 'unrated') != 'unrated' AND ur.group_position IS NOT NULL THEN
+          (SELECT COUNT(*) FROM user_ratings ur2
+           WHERE ur2.user_id = ?
+             AND ur2.tag != 'unrated'
+             AND ur2.group_position IS NOT NULL
              AND (
-               ${tagPrioritySQL('p2.tag')}
-               < ${tagPrioritySQL('photos.tag')}
+               ${tagPrioritySQL('ur2.tag')}
+               < ${tagPrioritySQL('ur.tag')}
              )
-          ) + group_position
+          ) + ur.group_position
         ELSE NULL
       END as global_rank
-    FROM photos
+    FROM photos p
+    LEFT JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
     ${whereClause}
     ORDER BY
-      CASE WHEN tag = 'unrated' THEN 1 ELSE 0 END,
-      ${tagPrioritySQL()},
-      group_position,
-      CAST(show_id AS INTEGER)
+      CASE WHEN COALESCE(ur.tag, 'unrated') = 'unrated' THEN 1 ELSE 0 END,
+      ${tagPrioritySQL('COALESCE(ur.tag, \'unrated\')')},
+      ur.group_position,
+      CAST(p.show_id AS INTEGER)
   `;
 
-  const photos = db.prepare(sql).all(...params);
+  // userId appears twice: once for subquery user_id, once for LEFT JOIN
+  const photos = db.prepare(sql).all(userId, userId, ...whereParams);
 
-  // Also return counts for filter badges
-  const countsWhere = hideClaimed === '1' ? 'WHERE taken = 0' : '';
+  // Counts query (per-user)
+  const countsWhere = hideClaimed === '1' ? 'AND p.taken = 0' : '';
   const counts = db
     .prepare(
       `
     SELECT
       COUNT(*) as total,
-      COALESCE(SUM(CASE WHEN tag = 'love' THEN 1 ELSE 0 END), 0) as love,
-      COALESCE(SUM(CASE WHEN tag = 'like' THEN 1 ELSE 0 END), 0) as 'like',
-      COALESCE(SUM(CASE WHEN tag = 'meh' THEN 1 ELSE 0 END), 0) as meh,
-      COALESCE(SUM(CASE WHEN tag = 'tax_deduction' THEN 1 ELSE 0 END), 0) as tax_deduction,
-      COALESCE(SUM(CASE WHEN tag = 'unrated' THEN 1 ELSE 0 END), 0) as unrated
-    FROM photos ${countsWhere}
+      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'love' THEN 1 ELSE 0 END), 0) as love,
+      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'like' THEN 1 ELSE 0 END), 0) as 'like',
+      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'meh' THEN 1 ELSE 0 END), 0) as meh,
+      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'tax_deduction' THEN 1 ELSE 0 END), 0) as tax_deduction,
+      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'unrated' THEN 1 ELSE 0 END), 0) as unrated
+    FROM photos p
+    LEFT JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
+    WHERE 1=1 ${countsWhere}
   `,
     )
-    .get();
+    .get(userId);
 
   res.json({ photos, counts });
 });
 
-// PATCH /api/photos/:id/tag — set or clear tag
+// PATCH /api/photos/:id/tag — set or clear tag (per-user)
 router.patch('/:id/tag', (req, res) => {
+  const userId = req.session.userId;
   const { id } = req.params;
-  const tag = req.body.tag ?? 'unrated'; // normalize null to 'unrated'
+  const tag = req.body.tag ?? 'unrated';
 
-  const photo = getPhotoById(id);
-  if (!photo) return res.status(404).json({ error: 'Photo not found' });
+  const basePhoto = getPhotoById(id);
+  if (!basePhoto) return res.status(404).json({ error: 'Photo not found' });
 
   const validTags = ['love', 'like', 'meh', 'tax_deduction', 'unrated'];
   if (!validTags.includes(tag)) {
@@ -95,17 +102,20 @@ router.patch('/:id/tag', (req, res) => {
   }
 
   const updateTag = db.transaction(() => {
-    const oldTag = photo.tag;
-    const oldPosition = photo.group_position;
+    // Get current user rating
+    const currentRating = db.prepare(
+      'SELECT tag, group_position FROM user_ratings WHERE user_id = ? AND photo_id = ?',
+    ).get(userId, id);
+
+    const oldTag = currentRating?.tag || 'unrated';
+    const oldPosition = currentRating?.group_position ?? null;
 
     // Remove from old group and recompact
     if (oldTag !== 'unrated' && oldPosition != null) {
       db.prepare(
-        `
-        UPDATE photos SET group_position = group_position - 1
-        WHERE tag = ? AND group_position > ?
-      `,
-      ).run(oldTag, oldPosition);
+        `UPDATE user_ratings SET group_position = group_position - 1
+         WHERE user_id = ? AND tag = ? AND group_position > ?`,
+      ).run(userId, oldTag, oldPosition);
     }
 
     if (tag !== 'unrated') {
@@ -115,80 +125,83 @@ router.patch('/:id/tag', (req, res) => {
       if (demoting) {
         // Demoting (higher → lower priority): insert at top
         db.prepare(
-          `
-          UPDATE photos SET group_position = group_position + 1
-          WHERE tag = ?
-        `,
-        ).run(tag);
+          `UPDATE user_ratings SET group_position = group_position + 1
+           WHERE user_id = ? AND tag = ?`,
+        ).run(userId, tag);
         newPosition = 1;
       } else {
         // Promoting or newly rated: append to bottom
         const maxPos = db
           .prepare(
-            'SELECT COALESCE(MAX(group_position), 0) as max_pos FROM photos WHERE tag = ?',
+            'SELECT COALESCE(MAX(group_position), 0) as max_pos FROM user_ratings WHERE user_id = ? AND tag = ?',
           )
-          .get(tag);
+          .get(userId, tag);
         newPosition = maxPos.max_pos + 1;
       }
 
+      // Upsert into user_ratings
       db.prepare(
-        'UPDATE photos SET tag = ?, group_position = ? WHERE id = ?',
-      ).run(tag, newPosition, id);
+        `INSERT INTO user_ratings (user_id, photo_id, tag, group_position)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(user_id, photo_id) DO UPDATE SET tag = excluded.tag, group_position = excluded.group_position`,
+      ).run(userId, id, tag, newPosition);
     } else {
-      // Clear tag — set to unrated
+      // Clear tag — remove the user_rating row (or set to unrated with no position)
       db.prepare(
-        'UPDATE photos SET tag = \'unrated\', group_position = NULL WHERE id = ?',
-      ).run(id);
+        'DELETE FROM user_ratings WHERE user_id = ? AND photo_id = ?',
+      ).run(userId, id);
     }
   });
 
   updateTag();
 
-  const updated = getPhotoById(id);
+  const updated = getUserPhoto(userId, id);
   res.json(updated);
 });
 
-// PATCH /api/photos/:id/reorder — move photo within its tag group
+// PATCH /api/photos/:id/reorder — move photo within its tag group (per-user)
 router.patch('/:id/reorder', (req, res) => {
+  const userId = req.session.userId;
   const { id } = req.params;
   const { newPosition } = req.body;
 
-  const photo = getPhotoById(id);
-  if (!photo) return res.status(404).json({ error: 'Photo not found' });
-  if (photo.tag === 'unrated')
-    return res.status(400).json({ error: 'Cannot reorder unrated photo' });
+  const basePhoto = getPhotoById(id);
+  if (!basePhoto) return res.status(404).json({ error: 'Photo not found' });
 
-  const oldPosition = photo.group_position;
-  if (oldPosition === newPosition) return res.json(photo);
+  const rating = db.prepare(
+    'SELECT tag, group_position FROM user_ratings WHERE user_id = ? AND photo_id = ?',
+  ).get(userId, id);
+
+  if (!rating || rating.tag === 'unrated') {
+    return res.status(400).json({ error: 'Cannot reorder unrated photo' });
+  }
+
+  const oldPosition = rating.group_position;
+  if (oldPosition === newPosition) {
+    return res.json(getUserPhoto(userId, id));
+  }
 
   const reorder = db.transaction(() => {
     if (newPosition > oldPosition) {
-      // Moving down: shift items between old+1..new up by 1
       db.prepare(
-        `
-        UPDATE photos SET group_position = group_position - 1
-        WHERE tag = ? AND group_position > ? AND group_position <= ?
-      `,
-      ).run(photo.tag, oldPosition, newPosition);
+        `UPDATE user_ratings SET group_position = group_position - 1
+         WHERE user_id = ? AND tag = ? AND group_position > ? AND group_position <= ?`,
+      ).run(userId, rating.tag, oldPosition, newPosition);
     } else {
-      // Moving up: shift items between new..old-1 down by 1
       db.prepare(
-        `
-        UPDATE photos SET group_position = group_position + 1
-        WHERE tag = ? AND group_position >= ? AND group_position < ?
-      `,
-      ).run(photo.tag, newPosition, oldPosition);
+        `UPDATE user_ratings SET group_position = group_position + 1
+         WHERE user_id = ? AND tag = ? AND group_position >= ? AND group_position < ?`,
+      ).run(userId, rating.tag, newPosition, oldPosition);
     }
 
-    db.prepare('UPDATE photos SET group_position = ? WHERE id = ?').run(
-      newPosition,
-      id,
-    );
+    db.prepare(
+      'UPDATE user_ratings SET group_position = ? WHERE user_id = ? AND photo_id = ?',
+    ).run(newPosition, userId, id);
   });
 
   reorder();
 
-  const updated = getPhotoById(id);
+  const updated = getUserPhoto(userId, id);
   res.json(updated);
 });
 

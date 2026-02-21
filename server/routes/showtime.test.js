@@ -7,7 +7,17 @@ import showtimeRouter from './showtime.js';
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+  req.session = { userId: 1, isAdmin: true };
+  next();
+});
 app.use('/api/showtime/photos', showtimeRouter);
+
+function insertUser() {
+  db.prepare(
+    'INSERT OR IGNORE INTO users (id, username, password_hash, is_admin) VALUES (1, \'admin\', \'hash\', 1)',
+  ).run();
+}
 
 function insertPhoto(overrides = {}) {
   const defaults = {
@@ -25,13 +35,11 @@ function insertPhoto(overrides = {}) {
   const data = { ...defaults, ...overrides };
   const result = db
     .prepare(
-      `INSERT INTO photos (filename, tag, group_position, taken, show_id, artist, title, medium, dimensions, flickr_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO photos (filename, taken, show_id, artist, title, medium, dimensions, flickr_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       data.filename,
-      data.tag,
-      data.group_position,
       data.taken,
       data.show_id,
       data.artist,
@@ -40,17 +48,30 @@ function insertPhoto(overrides = {}) {
       data.dimensions,
       data.flickr_id,
     );
-  return result.lastInsertRowid;
+
+  const photoId = result.lastInsertRowid;
+
+  if (data.tag !== 'unrated') {
+    db.prepare(
+      'INSERT INTO user_ratings (user_id, photo_id, tag, group_position) VALUES (1, ?, ?, ?)',
+    ).run(photoId, data.tag, data.group_position);
+  }
+
+  return photoId;
 }
 
-function clearPhotos() {
+function clearData() {
+  db.prepare('DELETE FROM user_ratings').run();
   db.prepare('DELETE FROM photos').run();
 }
 
-describe('GET /api/showtime/photos', () => {
-  beforeEach(clearPhotos);
-  afterEach(clearPhotos);
+beforeEach(() => {
+  clearData();
+  insertUser();
+});
+afterEach(clearData);
 
+describe('GET /api/showtime/photos', () => {
   it('returns only tagged photos with global rank', async () => {
     insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1 });
     insertPhoto({ filename: 'b.jpg' }); // unrated
@@ -65,12 +86,11 @@ describe('GET /api/showtime/photos', () => {
   it('orders by taken then priority then group_position', async () => {
     insertPhoto({ filename: 'a.jpg', tag: 'like', group_position: 1, taken: 0 });
     insertPhoto({ filename: 'b.jpg', tag: 'love', group_position: 1, taken: 1 });
-    insertPhoto({ filename: 'c.jpg', tag: 'love', group_position: 1, taken: 0 });
+    insertPhoto({ filename: 'c.jpg', tag: 'love', group_position: 2, taken: 0 });
 
     const res = await request(app).get('/api/showtime/photos').expect(200);
 
-    // Available photos first (taken=0), then taken photos (taken=1)
-    assert.equal(res.body.photos[0].filename, 'c.jpg'); // love, available
+    assert.equal(res.body.photos[0].filename, 'c.jpg'); // love, available (pos 2 but available)
     assert.equal(res.body.photos[1].filename, 'a.jpg'); // like, available
     assert.equal(res.body.photos[2].filename, 'b.jpg'); // love, taken
   });
@@ -85,9 +105,6 @@ describe('GET /api/showtime/photos', () => {
 });
 
 describe('PATCH /api/showtime/photos/:id/take', () => {
-  beforeEach(clearPhotos);
-  afterEach(clearPhotos);
-
   it('marks a tagged photo as taken', async () => {
     const id = insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1 });
 
@@ -126,9 +143,6 @@ describe('PATCH /api/showtime/photos/:id/take', () => {
 });
 
 describe('PATCH /api/showtime/photos/:id/restore', () => {
-  beforeEach(clearPhotos);
-  afterEach(clearPhotos);
-
   it('restores a taken photo', async () => {
     const id = insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1, taken: 1 });
 

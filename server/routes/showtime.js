@@ -4,45 +4,59 @@ import { tagPrioritySQL } from '../utils/tagPriority.js';
 
 const router = Router();
 
-// GET / — all tagged photos ordered by rank, available before taken
+// GET / — all tagged photos ordered by rank (using admin's ratings)
 router.get('/', (req, res) => {
+  const userId = req.session.userId;
+
   const photos = db.prepare(`
-    SELECT *,
-      (SELECT COUNT(*) FROM photos p2
-       WHERE p2.tag != 'unrated'
-         AND p2.group_position IS NOT NULL
+    SELECT p.id, p.filename, p.taken, p.show_id, p.artist, p.title,
+           p.medium, p.dimensions, p.flickr_id, p.created_at,
+           COALESCE(ur.tag, 'unrated') as tag, ur.group_position,
+      (SELECT COUNT(*) FROM user_ratings ur2
+       WHERE ur2.user_id = ?
+         AND ur2.tag != 'unrated'
+         AND ur2.group_position IS NOT NULL
          AND (
-           ${tagPrioritySQL('p2.tag')}
-           < ${tagPrioritySQL('photos.tag')}
+           ${tagPrioritySQL('ur2.tag')}
+           < ${tagPrioritySQL('ur.tag')}
          )
-      ) + group_position as global_rank
-    FROM photos
-    WHERE tag != 'unrated' AND group_position IS NOT NULL
+      ) + ur.group_position as global_rank
+    FROM photos p
+    INNER JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
+    WHERE ur.tag != 'unrated' AND ur.group_position IS NOT NULL
     ORDER BY
-      taken,
-      ${tagPrioritySQL()},
-      group_position
-  `).all();
+      p.taken,
+      ${tagPrioritySQL('ur.tag')},
+      ur.group_position
+  `).all(userId, userId);
 
   res.json({ photos });
 });
 
-// PATCH /:id/take — mark a photo as taken
+// PATCH /:id/take — mark a photo as taken (global)
 router.patch('/:id/take', (req, res) => {
   const { id } = req.params;
 
   const photo = getPhotoById(id);
   if (!photo) return res.status(404).json({ error: 'Photo not found' });
-  if (photo.tag === 'unrated') return res.status(400).json({ error: 'Photo is not tagged' });
+
+  // Check if this photo is tagged by the admin user
+  const userId = req.session.userId;
+  const rating = db.prepare(
+    'SELECT tag FROM user_ratings WHERE user_id = ? AND photo_id = ? AND tag != \'unrated\'',
+  ).get(userId, id);
+  if (!rating) return res.status(400).json({ error: 'Photo is not tagged' });
   if (photo.taken) return res.status(400).json({ error: 'Photo is already taken' });
 
   db.prepare('UPDATE photos SET taken = 1 WHERE id = ?').run(id);
 
   const updated = getPhotoById(id);
+  // Return with tag info from user_ratings
+  updated.tag = rating.tag;
   res.json(updated);
 });
 
-// PATCH /:id/restore — restore a taken photo
+// PATCH /:id/restore — restore a taken photo (global)
 router.patch('/:id/restore', (req, res) => {
   const { id } = req.params;
 

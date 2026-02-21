@@ -123,14 +123,18 @@ async function clearList(session) {
   session.cookies = extractCookies(res, session.cookies);
 }
 
-function getSubmittablePhotos() {
+function getSubmittablePhotos(userId) {
   return db.prepare(`
-    SELECT * FROM photos
-    WHERE tag IN ('love', 'like', 'meh')
+    SELECT p.id, p.filename, p.taken, p.show_id, p.artist, p.title,
+           p.medium, p.dimensions, p.flickr_id, p.created_at,
+           ur.tag, ur.group_position
+    FROM photos p
+    INNER JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
+    WHERE ur.tag IN ('love', 'like', 'meh')
     ORDER BY
-      ${tagPrioritySQL()},
-      group_position
-  `).all();
+      ${tagPrioritySQL('ur.tag')},
+      ur.group_position
+  `).all(userId);
 }
 
 async function addArtwork(session, showId) {
@@ -214,7 +218,7 @@ router.get('/', async (req, res) => {
     if (aborted) { res.end(); return; }
 
     // Step 4: Query local DB for submittable photos
-    const photos = getSubmittablePhotos();
+    const photos = getSubmittablePhotos(req.session.userId);
 
     if (photos.length === 0) {
       sendEvent(res, { step: 'error', message: 'No photos tagged Love, Like, or Meh to submit.' });
