@@ -1,5 +1,51 @@
 const API_BASE = '/api';
 
+const fetchOpts = { credentials: 'include' };
+
+// Auth API
+export async function login(username, password) {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    ...fetchOpts,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Login failed');
+  }
+  return res.json();
+}
+
+export async function register(username, password) {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    ...fetchOpts,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Registration failed');
+  }
+  return res.json();
+}
+
+export async function logout() {
+  const res = await fetch(`${API_BASE}/auth/logout`, {
+    ...fetchOpts,
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Logout failed');
+  return res.json();
+}
+
+export async function fetchMe() {
+  const res = await fetch(`${API_BASE}/auth/me`, fetchOpts);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 // Photos API
 export async function fetchPhotos({ tag, search, hideClaimed } = {}) {
   const params = new URLSearchParams();
@@ -7,13 +53,14 @@ export async function fetchPhotos({ tag, search, hideClaimed } = {}) {
   if (search) params.set('search', search);
   if (hideClaimed) params.set('hideClaimed', '1');
   const qs = params.toString();
-  const res = await fetch(`${API_BASE}/photos${qs ? '?' + qs : ''}`);
+  const res = await fetch(`${API_BASE}/photos${qs ? '?' + qs : ''}`, fetchOpts);
   if (!res.ok) throw new Error('Failed to fetch photos');
   return res.json();
 }
 
 export async function tagPhoto(id, tag) {
   const res = await fetch(`${API_BASE}/photos/${id}/tag`, {
+    ...fetchOpts,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tag }),
@@ -24,6 +71,7 @@ export async function tagPhoto(id, tag) {
 
 export async function reorderPhoto(id, newPosition) {
   const res = await fetch(`${API_BASE}/photos/${id}/reorder`, {
+    ...fetchOpts,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ newPosition }),
@@ -42,7 +90,7 @@ export function fullImageUrl(id) {
 
 // Scan API
 export async function triggerScan() {
-  const res = await fetch(`${API_BASE}/scan`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/scan`, { ...fetchOpts, method: 'POST' });
   if (!res.ok) throw new Error('Scan failed');
   return res.json();
 }
@@ -55,13 +103,14 @@ export function submitUrl(codename) {
 
 // Showtime API
 export async function fetchShowtimePhotos() {
-  const res = await fetch(`${API_BASE}/showtime/photos`);
+  const res = await fetch(`${API_BASE}/showtime/photos`, fetchOpts);
   if (!res.ok) throw new Error('Failed to fetch showtime photos');
   return res.json();
 }
 
 export async function takePhoto(id) {
   const res = await fetch(`${API_BASE}/showtime/photos/${id}/take`, {
+    ...fetchOpts,
     method: 'PATCH',
   });
   if (!res.ok) {
@@ -73,6 +122,7 @@ export async function takePhoto(id) {
 
 export async function restorePhoto(id) {
   const res = await fetch(`${API_BASE}/showtime/photos/${id}/restore`, {
+    ...fetchOpts,
     method: 'PATCH',
   });
   if (!res.ok) {

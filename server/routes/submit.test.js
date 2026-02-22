@@ -7,7 +7,17 @@ import submitRouter, { extractCsrfToken, extractCookies, createSession, getSubmi
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+  req.session = { userId: 1, isAdmin: true };
+  next();
+});
 app.use('/api/submit', submitRouter);
+
+function insertUser() {
+  db.prepare(
+    'INSERT OR IGNORE INTO users (id, username, password_hash, is_admin) VALUES (1, \'admin\', \'hash\', 1)',
+  ).run();
+}
 
 function insertPhoto(overrides = {}) {
   const defaults = {
@@ -25,13 +35,11 @@ function insertPhoto(overrides = {}) {
   const data = { ...defaults, ...overrides };
   const result = db
     .prepare(
-      `INSERT INTO photos (filename, tag, group_position, taken, show_id, artist, title, medium, dimensions, flickr_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO photos (filename, taken, show_id, artist, title, medium, dimensions, flickr_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       data.filename,
-      data.tag,
-      data.group_position,
       data.taken,
       data.show_id,
       data.artist,
@@ -40,10 +48,20 @@ function insertPhoto(overrides = {}) {
       data.dimensions,
       data.flickr_id,
     );
-  return result.lastInsertRowid;
+
+  const photoId = result.lastInsertRowid;
+
+  if (data.tag !== 'unrated') {
+    db.prepare(
+      'INSERT INTO user_ratings (user_id, photo_id, tag, group_position) VALUES (1, ?, ?, ?)',
+    ).run(photoId, data.tag, data.group_position);
+  }
+
+  return photoId;
 }
 
-function clearPhotos() {
+function clearData() {
+  db.prepare('DELETE FROM user_ratings').run();
   db.prepare('DELETE FROM photos').run();
 }
 
@@ -72,39 +90,33 @@ function createMockFetch(overrides = {}) {
   `;
 
   const defaults = {
-    // GET / — login page
     loginPage: {
       ok: true,
       text: async () => loginPageHtml,
       headers: new Headers(),
     },
-    // POST /login — redirect to dashboard
     login: {
       ok: true,
       status: 302,
       text: async () => '',
       headers: new Headers({ location: '/dashboard' }),
     },
-    // GET /dashboard — follow redirect
     dashboard: {
       ok: true,
       text: async () => dashboardHtml,
       headers: new Headers(),
     },
-    // PUT /update-list — clear/order
     updateList: {
       ok: true,
       text: async () => '{}',
       json: async () => ({}),
       headers: new Headers(),
     },
-    // POST /add — add artwork
     add: {
       ok: true,
       json: async () => ({ data: { artThiefId: 42 } }),
       headers: new Headers(),
     },
-    // GET /logout
     logout: {
       ok: true,
       text: async () => '',
@@ -114,7 +126,6 @@ function createMockFetch(overrides = {}) {
 
   const responses = { ...defaults, ...overrides };
 
-  // Attach getSetCookie to all headers
   for (const resp of Object.values(responses)) {
     if (resp.headers && !resp.headers.getSetCookie) {
       resp.headers.getSetCookie = () => [];
@@ -208,15 +219,18 @@ describe('createSession', () => {
 });
 
 describe('getSubmittablePhotos', () => {
-  beforeEach(clearPhotos);
-  afterEach(clearPhotos);
+  beforeEach(() => {
+    clearData();
+    insertUser();
+  });
+  afterEach(clearData);
 
   it('returns love, like, and meh photos in priority order', () => {
     insertPhoto({ filename: 'meh.jpg', tag: 'meh', group_position: 1, show_id: '3' });
     insertPhoto({ filename: 'love.jpg', tag: 'love', group_position: 1, show_id: '1' });
     insertPhoto({ filename: 'like.jpg', tag: 'like', group_position: 1, show_id: '2' });
 
-    const photos = getSubmittablePhotos();
+    const photos = getSubmittablePhotos(1);
     assert.equal(photos.length, 3);
     assert.equal(photos[0].tag, 'love');
     assert.equal(photos[1].tag, 'like');
@@ -228,7 +242,7 @@ describe('getSubmittablePhotos', () => {
     insertPhoto({ filename: 'tax.jpg', tag: 'tax_deduction', group_position: 1, show_id: '2' });
     insertPhoto({ filename: 'unrated.jpg', show_id: '3' });
 
-    const photos = getSubmittablePhotos();
+    const photos = getSubmittablePhotos(1);
     assert.equal(photos.length, 1);
     assert.equal(photos[0].tag, 'love');
   });
@@ -237,14 +251,14 @@ describe('getSubmittablePhotos', () => {
     insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 2, show_id: '1' });
     insertPhoto({ filename: 'b.jpg', tag: 'love', group_position: 1, show_id: '2' });
 
-    const photos = getSubmittablePhotos();
+    const photos = getSubmittablePhotos(1);
     assert.equal(photos[0].group_position, 1);
     assert.equal(photos[1].group_position, 2);
   });
 
   it('returns empty array when no matching photos', () => {
     insertPhoto({ filename: 'unrated.jpg', show_id: '1' });
-    assert.equal(getSubmittablePhotos().length, 0);
+    assert.equal(getSubmittablePhotos(1).length, 0);
   });
 });
 
@@ -252,13 +266,14 @@ describe('GET /api/submit', () => {
   let originalFetch;
 
   beforeEach(() => {
-    clearPhotos();
+    clearData();
+    insertUser();
     originalFetch = globalThis.fetch;
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
-    clearPhotos();
+    clearData();
   });
 
   it('returns 400 when codename is missing', async () => {
@@ -389,7 +404,6 @@ describe('GET /api/submit', () => {
     const events = parseSSE(res.body);
     const steps = events.map((e) => e.step);
 
-    // Verify the expected sequence of steps
     assert.ok(steps.includes('login'));
     assert.ok(steps.includes('clear'));
     assert.ok(steps.includes('add'));
@@ -397,7 +411,6 @@ describe('GET /api/submit', () => {
     assert.ok(steps.includes('logout'));
     assert.ok(steps.includes('done'));
 
-    // Verify done message includes count
     const doneEvent = events.find((e) => e.step === 'done');
     assert.match(doneEvent.message, /2 artworks/);
   });
@@ -477,7 +490,6 @@ describe('GET /api/submit', () => {
       },
     });
 
-    // Wrap to capture show IDs from add calls
     const baseFetch = globalThis.fetch;
     globalThis.fetch = async (url, opts = {}) => {
       if (opts.method === 'POST' && url.includes('/add')) {
@@ -496,9 +508,7 @@ describe('GET /api/submit', () => {
         res.on('end', () => cb(null, data));
       });
 
-    // Should only submit love, like, meh (not tax_deduction or unrated)
     assert.equal(addedShowIds.length, 3);
-    // Order: love first (10), then like (20), then meh (30)
     assert.deepEqual(addedShowIds, ['010', '020', '030']);
   });
 
@@ -531,14 +541,13 @@ describe('GET /api/submit', () => {
         status: 200,
         text: async () => dashboardHtml,
         headers: (() => {
-          const h = new Headers(); // no location header
+          const h = new Headers();
           h.getSetCookie = () => [];
           return h;
         })(),
       },
     });
 
-    // No photos, so it'll error after login succeeds — that confirms login path worked
     const res = await request(app)
       .get('/api/submit?codename=testuser')
       .buffer(true)
@@ -550,7 +559,6 @@ describe('GET /api/submit', () => {
 
     const events = parseSSE(res.body);
     const steps = events.map((e) => e.step);
-    // Should get past login to the clear step before erroring on no photos
     assert.ok(steps.includes('clear'));
     const errorEvent = events.find((e) => e.step === 'error');
     assert.match(errorEvent.message, /No photos tagged/);
