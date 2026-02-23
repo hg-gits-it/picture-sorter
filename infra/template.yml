@@ -7,10 +7,6 @@ Parameters:
     Description: HTTPS URL of the GitHub repository to clone
     Default: https://github.com/hg-gits-it/picture-sorter.git
 
-  KeyPairName:
-    Type: String
-    Description: Name of an existing Lightsail SSH key pair
-
   CreateNewDisk:
     Type: String
     Default: 'yes'
@@ -21,6 +17,15 @@ Parameters:
     Type: String
     Default: picture-sorter-data
     Description: Name for the persistent data disk (must be the same every time)
+
+  SsmActivationId:
+    Type: String
+    Description: SSM hybrid activation ID (created by the infra workflow)
+
+  SsmActivationCode:
+    Type: String
+    NoEcho: true
+    Description: SSM hybrid activation code (created by the infra workflow)
 
 Conditions:
   ShouldCreateDisk: !Equals [!Ref CreateNewDisk, 'yes']
@@ -42,14 +47,8 @@ Resources:
       AvailabilityZone: us-east-1a
       BlueprintId: ubuntu_24_04
       BundleId: micro_3_0
-      KeyPairName: !Ref KeyPairName
       Networking:
         Ports:
-          - FromPort: 22
-            ToPort: 22
-            Protocol: tcp
-            AccessFrom: '0.0.0.0/0'
-            AccessType: public
           - FromPort: 80
             ToPort: 80
             Protocol: tcp
@@ -87,6 +86,24 @@ Resources:
 
         # PM2
         npm install -g pm2
+
+        # SSM agent (hybrid managed instance)
+        echo "=== Installing SSM agent ==="
+        mkdir -p /tmp/ssm
+        curl -o /tmp/ssm/amazon-ssm-agent.deb \
+          https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+        dpkg -i /tmp/ssm/amazon-ssm-agent.deb
+        systemctl stop amazon-ssm-agent
+
+        amazon-ssm-agent -register \
+          -code "${SsmActivationCode}" \
+          -id "${SsmActivationId}" \
+          -region "${AWS::Region}" \
+          -y
+
+        systemctl enable amazon-ssm-agent
+        systemctl start amazon-ssm-agent
+        rm -rf /tmp/ssm
 
         # Wait for disk to be available
         echo "=== Waiting for data disk ==="
@@ -173,16 +190,14 @@ Resources:
 
         echo "=== Provisioning complete ==="
 
-    DependsOn:
-      - StaticIp
-
   StaticIp:
     Type: AWS::Lightsail::StaticIp
+    DependsOn: AppInstance
     Properties:
       StaticIpName: picture-sorter-ip
       AttachedTo: picture-sorter
 
 Outputs:
   StaticIpAddress:
-    Description: Public IP address for the app and SSH access
+    Description: Public IP address for the app
     Value: !GetAtt StaticIp.IpAddress

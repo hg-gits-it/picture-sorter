@@ -26,6 +26,7 @@ on:
 env:
   STACK_NAME: picture-sorter
   AWS_REGION: us-east-1
+  SSM_ROLE_NAME: picture-sorter-ssm-agent
 
 permissions:
   id-token: write
@@ -44,6 +45,26 @@ jobs:
           role-to-assume: arn:aws:iam::458302835574:role/github-lightsail-deployment
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Create SSM activation
+        if: inputs.action == 'create'
+        id: ssm
+        run: |
+          ROLE_ARN=$(aws iam get-role \
+            --role-name $SSM_ROLE_NAME \
+            --query "Role.Arn" \
+            --output text)
+
+          ACTIVATION=$(aws ssm create-activation \
+            --iam-role $SSM_ROLE_NAME \
+            --default-instance-name picture-sorter \
+            --registration-limit 1 \
+            --region $AWS_REGION \
+            --output json)
+
+          echo "activation-id=$(echo $ACTIVATION | jq -r '.ActivationId')" >> "$GITHUB_OUTPUT"
+          echo "activation-code=$(echo $ACTIVATION | jq -r '.ActivationCode')" >> "$GITHUB_OUTPUT"
+          echo "SSM activation created"
+
       - name: Create stack
         if: inputs.action == 'create'
         run: |
@@ -52,9 +73,10 @@ jobs:
             --template-body file://infra/template.yml \
             --parameters \
               ParameterKey=GitHubRepo,ParameterValue="${{ inputs.GitHubRepo }}" \
-              ParameterKey=KeyPairName,ParameterValue="${{ secrets.LIGHTSAIL_KEY_PAIR_NAME }}" \
               ParameterKey=CreateNewDisk,ParameterValue="${{ inputs.CreateNewDisk }}" \
-              ParameterKey=DiskName,ParameterValue=picture-sorter-data
+              ParameterKey=DiskName,ParameterValue=picture-sorter-data \
+              ParameterKey=SsmActivationId,ParameterValue="${{ steps.ssm.outputs.activation-id }}" \
+              ParameterKey=SsmActivationCode,ParameterValue="${{ steps.ssm.outputs.activation-code }}"
 
           echo "Waiting for stack creation to complete..."
           aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
@@ -65,7 +87,21 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='StaticIpAddress'].OutputValue" \
             --output text)
           echo "Static IP: $STATIC_IP"
-          echo "Add this as the LIGHTSAIL_HOST secret in GitHub."
+          echo "Visit http://$STATIC_IP to access the app."
+          echo "Shell access: aws ssm start-session --target <instance-id>"
+
+      - name: Deregister managed instance
+        if: inputs.action == 'delete'
+        run: |
+          INSTANCE_ID=$(aws ssm describe-instance-information \
+            --filters "Key=ResourceType,Values=ManagedInstances" \
+            --query "InstanceInformationList[?Name=='picture-sorter'].InstanceId | [0]" \
+            --output text)
+
+          if [ -n "$INSTANCE_ID" ] && [ "$INSTANCE_ID" != "None" ]; then
+            aws ssm deregister-managed-instance --instance-id "$INSTANCE_ID"
+            echo "Deregistered managed instance: $INSTANCE_ID"
+          fi
 
       - name: Delete stack
         if: inputs.action == 'delete'

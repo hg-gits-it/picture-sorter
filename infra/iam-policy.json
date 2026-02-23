@@ -10,7 +10,7 @@
         "cloudformation:DescribeStacks",
         "cloudformation:DescribeStackEvents"
       ],
-      "Resource": "arn:aws:cloudformation:us-east-1:*:stack/picture-sorter/*"
+      "Resource": "arn:aws:cloudformation:us-east-1:458302835574:stack/picture-sorter/*"
     },
     {
       "Sid": "LightsailResources",
@@ -34,6 +34,32 @@
         "lightsail:ReleaseStaticIp"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "SSMManagement",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:CreateActivation",
+        "ssm:DeleteActivation",
+        "ssm:DescribeActivations",
+        "ssm:DescribeInstanceInformation",
+        "ssm:DeregisterManagedInstance",
+        "ssm:GetCommandInvocation",
+        "ssm:SendCommand"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PassSSMAgentRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::458302835574:role/picture-sorter-ssm-agent"
+    },
+    {
+      "Sid": "GetSSMAgentRole",
+      "Effect": "Allow",
+      "Action": "iam:GetRole",
+      "Resource": "arn:aws:iam::458302835574:role/picture-sorter-ssm-agent"
     }
   ]
 }
