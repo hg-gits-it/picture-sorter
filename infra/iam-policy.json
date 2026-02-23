@@ -31,6 +31,8 @@
         "lightsail:GetOperations",
         "lightsail:GetStaticIp",
         "lightsail:PutInstancePublicPorts",
+        "lightsail:StartInstance",
+        "lightsail:StopInstance",
         "lightsail:ReleaseStaticIp"
       ],
       "Resource": "*"
