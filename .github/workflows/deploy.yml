@@ -25,7 +25,7 @@ jobs:
         id: ssm
         run: |
           INSTANCE_ID=$(aws ssm describe-instance-information \
-            --filters "Key=ResourceType,Values=ManagedInstances" "Key=PingStatus,Values=Online" \
+            --filters "Key=ResourceType,Values=ManagedInstance" "Key=PingStatus,Values=Online" \
             --query "InstanceInformationList[?Name=='picture-sorter'].InstanceId | [0]" \
             --output text)
 

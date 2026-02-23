@@ -94,7 +94,7 @@ jobs:
         if: inputs.action == 'delete'
         run: |
           INSTANCE_ID=$(aws ssm describe-instance-information \
-            --filters "Key=ResourceType,Values=ManagedInstances" \
+            --filters "Key=ResourceType,Values=ManagedInstance" \
             --query "InstanceInformationList[?Name=='picture-sorter'].InstanceId | [0]" \
             --output text)
 
