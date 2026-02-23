@@ -2,10 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Picture Sorter — Lightsail instance with persistent data disk
 
 Parameters:
-  GitHubRepo:
+  GhcrToken:
     Type: String
-    Description: HTTPS URL of the GitHub repository to clone
-    Default: https://github.com/hg-gits-it/picture-sorter.git
+    NoEcho: true
+    Description: GitHub PAT with read:packages scope for pulling GHCR images
 
   CreateNewDisk:
     Type: String
@@ -72,7 +72,7 @@ Resources:
         export SSM_ACTIVATION_ID="${SsmActivationId}"
         export SSM_REGION="${AWS::Region}"
         export CREATE_NEW_DISK="${CreateNewDisk}"
-        export GITHUB_REPO="${GitHubRepo}"
+        export GHCR_TOKEN="${GhcrToken}"
         VARS
 
         cat > /tmp/provision.sh << 'SCRIPT'
@@ -83,13 +83,16 @@ Resources:
 
         echo "=== Starting provisioning ==="
 
-        # System packages
+        # Docker
         apt-get update
-        apt-get install -y build-essential libvips-dev python3 curl
-
-        # Node.js 22 LTS
-        curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-        apt-get install -y nodejs
+        apt-get install -y ca-certificates curl
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+        chmod a+r /etc/apt/keyrings/docker.asc
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+          > /etc/apt/sources.list.d/docker.list
+        apt-get update
+        apt-get install -y docker-ce docker-ce-cli containerd.io
 
         # Caddy
         apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
@@ -99,9 +102,6 @@ Resources:
           | tee /etc/apt/sources.list.d/caddy-stable.list
         apt-get update
         apt-get install -y caddy
-
-        # PM2
-        npm install -g pm2
 
         # SSM agent (hybrid managed instance)
         echo "=== Registering SSM agent ==="
@@ -152,22 +152,6 @@ Resources:
         # Create data directories (idempotent)
         mkdir -p /mnt/data/photos /mnt/data/thumbnails
 
-        # Clone the repo
-        echo "=== Cloning repository ==="
-        mkdir -p /var/www/picture-sorter/logs
-        git clone "$GITHUB_REPO" /var/www/picture-sorter/app
-        cd /var/www/picture-sorter/app
-
-        # Symlinks: app data dirs → persistent disk
-        rm -rf data photos
-        ln -sfn /mnt/data data
-        ln -sfn /mnt/data/photos photos
-
-        # Install dependencies and build
-        echo "=== Installing dependencies ==="
-        npm install --omit=dev
-        cd client && npm install && npm run build && cd ..
-
         # Generate .env.production on the data disk (only if it doesn't exist)
         if [ ! -f /mnt/data/.env.production ]; then
           echo "=== Generating .env.production ==="
@@ -176,9 +160,6 @@ Resources:
         NODE_ENV=production
         PORT=3001
         SESSION_SECRET=$SESSION_SECRET
-        DB_PATH=/mnt/data/picture-sorter.db
-        PHOTOS_DIR=/mnt/data/photos
-        THUMBNAILS_DIR=/mnt/data/thumbnails
         ENVEOF
         fi
 
@@ -192,12 +173,19 @@ Resources:
         systemctl restart caddy
         systemctl enable caddy
 
-        # Start app with PM2
+        # Pull and run Docker container
         echo "=== Starting application ==="
-        cd /var/www/picture-sorter/app
-        NODE_ENV=production pm2 start ecosystem.config.cjs
-        pm2 save
-        pm2 startup systemd -u root --hp /root
+        echo "$GHCR_TOKEN" | docker login ghcr.io -u gha --password-stdin
+        docker pull ghcr.io/hg-gits-it/picture-sorter:latest
+
+        docker run -d \
+          --name picture-sorter \
+          --restart unless-stopped \
+          -p 3001:3001 \
+          --env-file /mnt/data/.env.production \
+          -v /mnt/data:/app/data \
+          -v /mnt/data/photos:/app/photos \
+          ghcr.io/hg-gits-it/picture-sorter:latest
 
         echo "=== Provisioning complete ==="
         SCRIPT

@@ -18,10 +18,6 @@ on:
         options:
           - 'yes'
           - 'no'
-      GitHubRepo:
-        description: GitHub repo URL to clone
-        required: false
-        default: https://github.com/hg-gits-it/picture-sorter.git
 
 env:
   STACK_NAME: picture-sorter
@@ -72,7 +68,7 @@ jobs:
             --stack-name $STACK_NAME \
             --template-body file://infra/template.yml \
             --parameters \
-              ParameterKey=GitHubRepo,ParameterValue="${{ inputs.GitHubRepo }}" \
+              ParameterKey=GhcrToken,ParameterValue="${{ secrets.GHCR_TOKEN }}" \
               ParameterKey=CreateNewDisk,ParameterValue="${{ inputs.CreateNewDisk }}" \
               ParameterKey=DiskName,ParameterValue=picture-sorter-data \
               ParameterKey=SsmActivationId,ParameterValue="${{ steps.ssm.outputs.activation-id }}" \
