@@ -66,7 +66,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy from GitHub Actions" \
             --timeout-seconds 300 \
-            --parameters commands='["echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u gha --password-stdin && docker pull ${{ env.IMAGE }}:latest && docker stop picture-sorter && docker rm picture-sorter && docker run -d --name picture-sorter --restart unless-stopped -p 3001:3001 --env-file /mnt/data/.env.production -v /mnt/data:/app/data -v /mnt/data/photos:/app/photos ${{ env.IMAGE }}:latest && docker image prune -f"]' \
+            --parameters commands='["echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u gha --password-stdin && docker pull ${{ env.IMAGE }}:latest && docker stop picture-sorter || true && docker rm picture-sorter || true && docker run -d --name picture-sorter --restart unless-stopped -p 3001:3001 --env-file /mnt/data/.env.production -v /mnt/data:/app/data -v /mnt/data/photos:/app/photos ${{ env.IMAGE }}:latest && docker image prune -f"]' \
             --query "Command.CommandId" \
             --output text)
 
