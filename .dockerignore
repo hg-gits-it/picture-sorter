@@ -1,0 +1,14 @@
+**/node_modules/
+data/
+photos/
+flickr/
+*.db
+*.db-shm
+*.db-wal
+.git/
+.github/
+.claude/
+infra/
+.DS_Store
+dist/
+.env*

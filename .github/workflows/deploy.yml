@@ -8,19 +8,40 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 env:
   AWS_REGION: us-east-1
+  IMAGE: ghcr.io/hg-gits-it/picture-sorter
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::458302835574:role/github-lightsail-deployment
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
 
       - name: Find managed instance
         id: ssm
@@ -45,7 +66,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy from GitHub Actions" \
             --timeout-seconds 300 \
-            --parameters '{"commands":["cd /var/www/picture-sorter/app && git pull origin master && npm install --omit=dev && cd client && npm install && npm run build && cd .. && pm2 reload ecosystem.config.cjs"]}' \
+            --parameters commands='["echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u gha --password-stdin && docker pull ${{ env.IMAGE }}:latest && docker stop picture-sorter && docker rm picture-sorter && docker run -d --name picture-sorter --restart unless-stopped -p 3001:3001 --env-file /mnt/data/.env.production -v /mnt/data:/app/data -v /mnt/data/photos:/app/photos ${{ env.IMAGE }}:latest && docker image prune -f"]' \
             --query "Command.CommandId" \
             --output text)
 
