@@ -61,8 +61,18 @@ Resources:
             Path: /dev/xvdf
             IsSystemDisk: false
       UserData: !Sub |
+        cat > /tmp/provision-vars.sh << VARS
+        export SSM_ACTIVATION_CODE="${SsmActivationCode}"
+        export SSM_ACTIVATION_ID="${SsmActivationId}"
+        export SSM_REGION="${AWS::Region}"
+        export CREATE_NEW_DISK="${CreateNewDisk}"
+        export GITHUB_REPO="${GitHubRepo}"
+        VARS
+
+        cat > /tmp/provision.sh << 'SCRIPT'
         #!/bin/bash
         set -eu
+        source /tmp/provision-vars.sh
         exec > /var/log/user-data.log 2>&1
 
         echo "=== Starting provisioning ==="
@@ -96,9 +106,9 @@ Resources:
         systemctl stop amazon-ssm-agent
 
         amazon-ssm-agent -register \
-          -code "${SsmActivationCode}" \
-          -id "${SsmActivationId}" \
-          -region "${AWS::Region}" \
+          -code "$SSM_ACTIVATION_CODE" \
+          -id "$SSM_ACTIVATION_ID" \
+          -region "$SSM_REGION" \
           -y
 
         systemctl enable amazon-ssm-agent
@@ -119,7 +129,7 @@ Resources:
         fi
 
         # Mount the data disk
-        if [ "${CreateNewDisk}" = "yes" ]; then
+        if [ "$CREATE_NEW_DISK" = "yes" ]; then
           echo "=== Formatting new disk ==="
           mkfs.ext4 /dev/xvdf
         fi
@@ -144,7 +154,7 @@ Resources:
 
         # Clone the repo
         echo "=== Cloning repository ==="
-        git clone ${GitHubRepo} /var/www/picture-sorter/app
+        git clone "$GITHUB_REPO" /var/www/picture-sorter/app
         cd /var/www/picture-sorter/app
 
         # Recreate symlinks (clone may have created data/ and photos/ dirs)
@@ -189,6 +199,10 @@ Resources:
         pm2 startup systemd -u root --hp /root
 
         echo "=== Provisioning complete ==="
+        SCRIPT
+
+        bash /tmp/provision.sh
+        rm -f /tmp/provision-vars.sh /tmp/provision.sh
 
   StaticIp:
     Type: AWS::Lightsail::StaticIp
