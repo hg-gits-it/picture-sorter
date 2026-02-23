@@ -152,22 +152,16 @@ Resources:
         # Create data directories (idempotent)
         mkdir -p /mnt/data/photos /mnt/data/thumbnails
 
-        # App directory structure
-        mkdir -p /var/www/picture-sorter/app /var/www/picture-sorter/logs
-
-        # Symlinks: app data dirs → persistent disk
-        ln -sfn /mnt/data /var/www/picture-sorter/app/data
-        ln -sfn /mnt/data/photos /var/www/picture-sorter/app/photos
-
         # Clone the repo
         echo "=== Cloning repository ==="
+        mkdir -p /var/www/picture-sorter/logs
         git clone "$GITHUB_REPO" /var/www/picture-sorter/app
         cd /var/www/picture-sorter/app
 
-        # Recreate symlinks (clone may have created data/ and photos/ dirs)
-        rm -rf /var/www/picture-sorter/app/data /var/www/picture-sorter/app/photos
-        ln -sfn /mnt/data /var/www/picture-sorter/app/data
-        ln -sfn /mnt/data/photos /var/www/picture-sorter/app/photos
+        # Symlinks: app data dirs → persistent disk
+        rm -rf data photos
+        ln -sfn /mnt/data data
+        ln -sfn /mnt/data/photos photos
 
         # Install dependencies and build
         echo "=== Installing dependencies ==="
