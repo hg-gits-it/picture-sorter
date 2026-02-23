@@ -98,22 +98,16 @@ Resources:
         npm install -g pm2
 
         # SSM agent (hybrid managed instance)
-        echo "=== Installing SSM agent ==="
-        mkdir -p /tmp/ssm
-        curl -o /tmp/ssm/amazon-ssm-agent.deb \
-          https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
-        dpkg -i /tmp/ssm/amazon-ssm-agent.deb
-        systemctl stop amazon-ssm-agent
+        echo "=== Registering SSM agent ==="
+        snap stop amazon-ssm-agent
 
-        amazon-ssm-agent -register \
+        /snap/amazon-ssm-agent/current/amazon-ssm-agent -register \
           -code "$SSM_ACTIVATION_CODE" \
           -id "$SSM_ACTIVATION_ID" \
           -region "$SSM_REGION" \
           -y
 
-        systemctl enable amazon-ssm-agent
-        systemctl start amazon-ssm-agent
-        rm -rf /tmp/ssm
+        snap start amazon-ssm-agent
 
         # Wait for disk to be available
         echo "=== Waiting for data disk ==="
