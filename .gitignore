@@ -5,6 +5,5 @@ photos/
 *.db
 *.db-shm
 *.db-wal
-package-lock.json
 .DS_Store
 dist/
