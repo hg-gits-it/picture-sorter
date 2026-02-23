@@ -47,8 +47,14 @@ Resources:
       AvailabilityZone: us-east-1a
       BlueprintId: ubuntu_24_04
       BundleId: micro_3_0
+      KeyPairName: lightsail
       Networking:
         Ports:
+          - FromPort: 22
+            ToPort: 22
+            Protocol: tcp
+            AccessFrom: '0.0.0.0/0'
+            AccessType: public
           - FromPort: 80
             ToPort: 80
             Protocol: tcp
