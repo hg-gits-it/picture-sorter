@@ -1,0 +1,203 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Picture Sorter — Lightsail instance with persistent data disk
+
+Parameters:
+  GitHubRepo:
+    Type: String
+    Description: HTTPS URL of the GitHub repository to clone
+    Default: https://github.com/hg-gits-it/picture-sorter.git
+
+  CreateNewDisk:
+    Type: String
+    Default: 'yes'
+    AllowedValues: ['yes', 'no']
+    Description: Create a new data disk (yes) or attach an existing retained disk (no)
+
+  DiskName:
+    Type: String
+    Default: picture-sorter-data
+    Description: Name for the persistent data disk (must be the same every time)
+
+  SsmActivationId:
+    Type: String
+    Description: SSM hybrid activation ID (created by the infra workflow)
+
+  SsmActivationCode:
+    Type: String
+    NoEcho: true
+    Description: SSM hybrid activation code (created by the infra workflow)
+
+Conditions:
+  ShouldCreateDisk: !Equals [!Ref CreateNewDisk, 'yes']
+
+Resources:
+  DataDisk:
+    Type: AWS::Lightsail::Disk
+    Condition: ShouldCreateDisk
+    DeletionPolicy: Retain
+    Properties:
+      DiskName: !Ref DiskName
+      SizeInGb: 20
+      AvailabilityZone: us-east-1a
+
+  AppInstance:
+    Type: AWS::Lightsail::Instance
+    Properties:
+      InstanceName: picture-sorter
+      AvailabilityZone: us-east-1a
+      BlueprintId: ubuntu_24_04
+      BundleId: micro_3_0
+      Networking:
+        Ports:
+          - FromPort: 80
+            ToPort: 80
+            Protocol: tcp
+            AccessFrom: '0.0.0.0/0'
+            AccessType: public
+      Hardware:
+        Disks:
+          - DiskName: !Ref DiskName
+            AttachedTo: picture-sorter
+            Path: /dev/xvdf
+            IsSystemDisk: false
+      UserData: !Sub |
+        #!/bin/bash
+        set -euo pipefail
+        exec > /var/log/user-data.log 2>&1
+
+        echo "=== Starting provisioning ==="
+
+        # System packages
+        apt-get update
+        apt-get install -y build-essential libvips-dev python3 curl
+
+        # Node.js 22 LTS
+        curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+        apt-get install -y nodejs
+
+        # Caddy
+        apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
+          | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
+          | tee /etc/apt/sources.list.d/caddy-stable.list
+        apt-get update
+        apt-get install -y caddy
+
+        # PM2
+        npm install -g pm2
+
+        # SSM agent (hybrid managed instance)
+        echo "=== Installing SSM agent ==="
+        mkdir -p /tmp/ssm
+        curl -o /tmp/ssm/amazon-ssm-agent.deb \
+          https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+        dpkg -i /tmp/ssm/amazon-ssm-agent.deb
+        systemctl stop amazon-ssm-agent
+
+        amazon-ssm-agent -register \
+          -code "${SsmActivationCode}" \
+          -id "${SsmActivationId}" \
+          -region "${AWS::Region}" \
+          -y
+
+        systemctl enable amazon-ssm-agent
+        systemctl start amazon-ssm-agent
+        rm -rf /tmp/ssm
+
+        # Wait for disk to be available
+        echo "=== Waiting for data disk ==="
+        for i in $(seq 1 30); do
+          [ -b /dev/xvdf ] && break
+          echo "Waiting for /dev/xvdf... ($i)"
+          sleep 5
+        done
+
+        if [ ! -b /dev/xvdf ]; then
+          echo "ERROR: /dev/xvdf not found after 150s"
+          exit 1
+        fi
+
+        # Mount the data disk
+        if [ "${CreateNewDisk}" = "yes" ]; then
+          echo "=== Formatting new disk ==="
+          mkfs.ext4 /dev/xvdf
+        fi
+
+        mkdir -p /mnt/data
+        mount /dev/xvdf /mnt/data
+
+        # Add fstab entry for reboot persistence
+        if ! grep -q '/dev/xvdf' /etc/fstab; then
+          echo '/dev/xvdf /mnt/data ext4 defaults,nofail 0 2' >> /etc/fstab
+        fi
+
+        # Create data directories (idempotent)
+        mkdir -p /mnt/data/photos /mnt/data/thumbnails
+
+        # App directory structure
+        mkdir -p /var/www/picture-sorter/app /var/www/picture-sorter/logs
+
+        # Symlinks: app data dirs → persistent disk
+        ln -sfn /mnt/data /var/www/picture-sorter/app/data
+        ln -sfn /mnt/data/photos /var/www/picture-sorter/app/photos
+
+        # Clone the repo
+        echo "=== Cloning repository ==="
+        git clone ${GitHubRepo} /var/www/picture-sorter/app
+        cd /var/www/picture-sorter/app
+
+        # Recreate symlinks (clone may have created data/ and photos/ dirs)
+        rm -rf /var/www/picture-sorter/app/data /var/www/picture-sorter/app/photos
+        ln -sfn /mnt/data /var/www/picture-sorter/app/data
+        ln -sfn /mnt/data/photos /var/www/picture-sorter/app/photos
+
+        # Install dependencies and build
+        echo "=== Installing dependencies ==="
+        npm install --omit=dev
+        cd client && npm install && npm run build && cd ..
+
+        # Generate .env.production on the data disk (only if it doesn't exist)
+        if [ ! -f /mnt/data/.env.production ]; then
+          echo "=== Generating .env.production ==="
+          SESSION_SECRET=$(openssl rand -hex 32)
+          cat > /mnt/data/.env.production << ENVEOF
+        NODE_ENV=production
+        PORT=3001
+        SESSION_SECRET=$SESSION_SECRET
+        DB_PATH=/mnt/data/picture-sorter.db
+        PHOTOS_DIR=/mnt/data/photos
+        THUMBNAILS_DIR=/mnt/data/thumbnails
+        ENVEOF
+        fi
+
+        # Configure Caddy
+        echo "=== Configuring Caddy ==="
+        cat > /etc/caddy/Caddyfile << 'CADDYEOF'
+        http://:80 {
+            reverse_proxy localhost:3001
+        }
+        CADDYEOF
+        systemctl restart caddy
+        systemctl enable caddy
+
+        # Start app with PM2
+        echo "=== Starting application ==="
+        cd /var/www/picture-sorter/app
+        NODE_ENV=production pm2 start ecosystem.config.cjs
+        pm2 save
+        pm2 startup systemd -u root --hp /root
+
+        echo "=== Provisioning complete ==="
+
+  StaticIp:
+    Type: AWS::Lightsail::StaticIp
+    DependsOn: AppInstance
+    Properties:
+      StaticIpName: picture-sorter-ip
+      AttachedTo: picture-sorter
+
+Outputs:
+  StaticIpAddress:
+    Description: Public IP address for the app
+    Value: !GetAtt StaticIp.IpAddress

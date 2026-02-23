@@ -1,0 +1,65 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudFormationStackManagement",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents"
+      ],
+      "Resource": "arn:aws:cloudformation:us-east-1:458302835574:stack/picture-sorter/*"
+    },
+    {
+      "Sid": "LightsailResources",
+      "Effect": "Allow",
+      "Action": [
+        "lightsail:AllocateStaticIp",
+        "lightsail:AttachDisk",
+        "lightsail:AttachStaticIp",
+        "lightsail:CreateDisk",
+        "lightsail:CreateInstances",
+        "lightsail:DeleteDisk",
+        "lightsail:DeleteInstance",
+        "lightsail:DetachDisk",
+        "lightsail:DetachStaticIp",
+        "lightsail:GetDisk",
+        "lightsail:GetInstance",
+        "lightsail:GetOperation",
+        "lightsail:GetOperations",
+        "lightsail:GetStaticIp",
+        "lightsail:PutInstancePublicPorts",
+        "lightsail:ReleaseStaticIp"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SSMManagement",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:CreateActivation",
+        "ssm:DeleteActivation",
+        "ssm:DescribeActivations",
+        "ssm:DescribeInstanceInformation",
+        "ssm:DeregisterManagedInstance",
+        "ssm:GetCommandInvocation",
+        "ssm:SendCommand"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PassSSMAgentRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::458302835574:role/picture-sorter-ssm-agent"
+    },
+    {
+      "Sid": "GetSSMAgentRole",
+      "Effect": "Allow",
+      "Action": "iam:GetRole",
+      "Resource": "arn:aws:iam::458302835574:role/picture-sorter-ssm-agent"
+    }
+  ]
+}
