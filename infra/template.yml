@@ -62,7 +62,7 @@ Resources:
             IsSystemDisk: false
       UserData: !Sub |
         #!/bin/bash
-        set -euo pipefail
+        set -eu
         exec > /var/log/user-data.log 2>&1
 
         echo "=== Starting provisioning ==="
