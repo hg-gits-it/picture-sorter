@@ -1,0 +1,77 @@
+name: Manage Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Stack action
+        required: true
+        type: choice
+        options:
+          - create
+          - delete
+      CreateNewDisk:
+        description: Create a new data disk? (yes for first time, no to reattach existing)
+        required: true
+        type: choice
+        default: 'no'
+        options:
+          - 'yes'
+          - 'no'
+      GitHubRepo:
+        description: GitHub repo URL to clone
+        required: false
+        default: https://github.com/hg-gits-it/picture-sorter.git
+
+env:
+  STACK_NAME: picture-sorter
+  AWS_REGION: us-east-1
+
+jobs:
+  manage-stack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create stack
+        if: inputs.action == 'create'
+        run: |
+          aws cloudformation create-stack \
+            --stack-name $STACK_NAME \
+            --template-body file://infra/template.yml \
+            --parameters \
+              ParameterKey=GitHubRepo,ParameterValue="${{ inputs.GitHubRepo }}" \
+              ParameterKey=KeyPairName,ParameterValue="${{ secrets.LIGHTSAIL_KEY_PAIR_NAME }}" \
+              ParameterKey=CreateNewDisk,ParameterValue="${{ inputs.CreateNewDisk }}" \
+              ParameterKey=DiskName,ParameterValue=picture-sorter-data
+
+          echo "Waiting for stack creation to complete..."
+          aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+
+          echo "=== Stack created ==="
+          STATIC_IP=$(aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --query "Stacks[0].Outputs[?OutputKey=='StaticIpAddress'].OutputValue" \
+            --output text)
+          echo "Static IP: $STATIC_IP"
+          echo "Add this as the LIGHTSAIL_HOST secret in GitHub."
+
+      - name: Delete stack
+        if: inputs.action == 'delete'
+        run: |
+          aws cloudformation delete-stack --stack-name $STACK_NAME
+
+          echo "Waiting for stack deletion to complete..."
+          aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME
+
+          echo "=== Stack deleted ==="
+          echo "The data disk (picture-sorter-data) has been retained."
+          echo "To reuse it next season, create the stack with CreateNewDisk=no."

@@ -23,6 +23,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3-session-store": "^0.1.0",
+    "dotenv": "^17.3.1",
     "express-session": "^1.19.0"
   }
 }

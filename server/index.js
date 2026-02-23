@@ -1,3 +1,4 @@
+import './env.js';
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
@@ -13,7 +14,7 @@ import scanRouter from './routes/scan.js';
 import { requireAuth, requireAdmin } from './middleware/auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const THUMBNAILS_DIR = resolve(__dirname, '..', 'data', 'thumbnails');
+const THUMBNAILS_DIR = process.env.THUMBNAILS_DIR || resolve(__dirname, '..', 'data', 'thumbnails');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
