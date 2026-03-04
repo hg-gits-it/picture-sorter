@@ -45,6 +45,7 @@ app.use(express.json());
 // Session middleware
 const BetterSqliteStore = SqliteStore(session);
 app.use(session({
+  name: 'sid',
   store: new BetterSqliteStore({ client: db, expired: { clear: true, intervalMs: 900000 } }),
   secret: process.env.SESSION_SECRET || 'picture-sorter-dev-secret',
   resave: false,
