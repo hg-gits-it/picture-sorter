@@ -156,6 +156,7 @@ Resources:
 
         # Create data directories (idempotent)
         mkdir -p /mnt/data/photos /mnt/data/thumbnails
+        chown -R ubuntu:ubuntu /mnt/data/photos
 
         # Generate .env.production on the data disk (only if it doesn't exist)
         if [ ! -f /mnt/data/.env.production ]; then
