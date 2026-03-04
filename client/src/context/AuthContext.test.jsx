@@ -7,18 +7,18 @@ import * as api from '../api/photos.js';
 vi.mock('../api/photos.js', () => ({
   fetchMe: vi.fn(),
   login: vi.fn(),
-  register: vi.fn(),
+  setup: vi.fn(),
   logout: vi.fn(),
 }));
 
 function TestConsumer() {
-  const { user, loading, login, register, logout } = useAuth();
+  const { user, loading, login, setup, logout } = useAuth();
   return (
     <div>
       <div data-testid="loading">{String(loading)}</div>
       <div data-testid="user">{user ? user.username : 'null'}</div>
       <button onClick={() => login('alice', 'pass')}>login</button>
-      <button onClick={() => register('bob', 'pass')}>register</button>
+      <button onClick={() => setup('admin', 'pass')}>setup</button>
       <button onClick={() => logout()}>logout</button>
     </div>
   );
@@ -84,9 +84,9 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('user').textContent).toBe('alice');
   });
 
-  it('register sets user', async () => {
+  it('setup sets user', async () => {
     api.fetchMe.mockResolvedValue(null);
-    api.register.mockResolvedValue({ id: 2, username: 'bob', isAdmin: true });
+    api.setup.mockResolvedValue({ id: 1, username: 'admin', isAdmin: true });
 
     render(
       <AuthProvider>
@@ -99,11 +99,11 @@ describe('AuthContext', () => {
     });
 
     await act(async () => {
-      screen.getByText('register').click();
+      screen.getByText('setup').click();
     });
 
-    expect(api.register).toHaveBeenCalledWith('bob', 'pass');
-    expect(screen.getByTestId('user').textContent).toBe('bob');
+    expect(api.setup).toHaveBeenCalledWith('admin', 'pass');
+    expect(screen.getByTestId('user').textContent).toBe('admin');
   });
 
   it('logout clears user', async () => {

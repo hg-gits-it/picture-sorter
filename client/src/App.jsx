@@ -6,11 +6,13 @@ import TagGroup from './components/TagGroup.jsx';
 import UnratedSection from './components/UnratedSection.jsx';
 import PhotoModal from './components/PhotoModal.jsx';
 import SubmitModal from './components/SubmitModal.jsx';
+import UserManagement from './components/UserManagement.jsx';
 
 function AppContent() {
   const { photos, scanPhotos, loading, filterTag } = usePhotos();
   const { user, logout } = useAuth();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
+  const [userMgmtOpen, setUserMgmtOpen] = useState(false);
 
   const lovePhotos = photos.filter((p) => p.tag === 'love');
   const likePhotos = photos.filter((p) => p.tag === 'like');
@@ -36,6 +38,12 @@ function AppContent() {
                 onClick={() => setSubmitModalOpen(true)}
               >
                 Submit to Show
+              </button>
+              <button
+                className="users-btn"
+                onClick={() => setUserMgmtOpen(true)}
+              >
+                Users
               </button>
             </>
           )}
@@ -79,6 +87,9 @@ function AppContent() {
         open={submitModalOpen}
         onClose={() => setSubmitModalOpen(false)}
       />
+      {userMgmtOpen && (
+        <UserManagement onClose={() => setUserMgmtOpen(false)} />
+      )}
     </div>
   );
 }
