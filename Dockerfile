@@ -21,6 +21,9 @@ COPY package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/server/node_modules ./server/node_modules
 COPY --from=build /app/client/dist ./client/dist
+RUN addgroup -S app && adduser -S app -G app
+RUN chown -R app:app /app
+USER app
 ENV NODE_ENV=production PORT=3001
 EXPOSE 3001
 CMD ["node", "server/index.js"]

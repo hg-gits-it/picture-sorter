@@ -7,3 +7,4 @@ photos/
 *.db-wal
 .DS_Store
 dist/
+.env*

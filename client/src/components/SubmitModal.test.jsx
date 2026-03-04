@@ -3,36 +3,26 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SubmitModal from './SubmitModal.jsx';
+import * as api from '../api/photos.js';
 
-vi.mock('../api/photos.js', () => ({
-  submitUrl: (codename) => `/api/submit?codename=${codename}`,
-}));
+vi.mock('../api/photos.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    startSubmit: vi.fn(),
+  };
+});
 
-// Mock EventSource
-class MockEventSource {
-  constructor(url) {
-    this.url = url;
-    this.onmessage = null;
-    this.onerror = null;
-    this.closed = false;
-    MockEventSource.instances.push(this);
-  }
-  close() {
-    this.closed = true;
-  }
-  // Helper to simulate server messages
-  _emit(data) {
-    if (this.onmessage) {
-      this.onmessage({ data: JSON.stringify(data) });
-    }
-  }
-}
-MockEventSource.instances = [];
+let capturedOnMessage;
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  MockEventSource.instances = [];
-  globalThis.EventSource = MockEventSource;
+  capturedOnMessage = null;
+  // By default, startSubmit captures onMessage and returns a pending promise
+  api.startSubmit.mockImplementation((codename, { onMessage }) => {
+    capturedOnMessage = onMessage;
+    return new Promise(() => {}); // never resolves unless we want it to
+  });
   // jsdom doesn't implement scrollIntoView
   Element.prototype.scrollIntoView = vi.fn();
   cleanup();
@@ -69,7 +59,7 @@ describe('SubmitModal', () => {
 
     await user.click(screen.getByText('Submit'));
 
-    expect(MockEventSource.instances).toHaveLength(0);
+    expect(api.startSubmit).not.toHaveBeenCalled();
   });
 
   it('calls onClose when Cancel is clicked', async () => {
@@ -102,15 +92,17 @@ describe('SubmitModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('creates EventSource with correct URL on submit', async () => {
+  it('calls startSubmit with codename on submit', async () => {
     const user = userEvent.setup();
     render(<SubmitModal open={true} onClose={vi.fn()} />);
 
     await user.type(screen.getByPlaceholderText('Enter your codename'), 'alice');
     await user.click(screen.getByText('Submit'));
 
-    expect(MockEventSource.instances).toHaveLength(1);
-    expect(MockEventSource.instances[0].url).toBe('/api/submit?codename=alice');
+    expect(api.startSubmit).toHaveBeenCalledWith('alice', expect.objectContaining({
+      onMessage: expect.any(Function),
+      signal: expect.any(AbortSignal),
+    }));
   });
 
   it('submits on Enter key in codename input', async () => {
@@ -119,7 +111,7 @@ describe('SubmitModal', () => {
 
     await user.type(screen.getByPlaceholderText('Enter your codename'), 'alice{Enter}');
 
-    expect(MockEventSource.instances).toHaveLength(1);
+    expect(api.startSubmit).toHaveBeenCalled();
   });
 
   it('shows progress during submission', async () => {
@@ -131,9 +123,8 @@ describe('SubmitModal', () => {
 
     expect(screen.getByText('Starting...')).toBeInTheDocument();
 
-    const es = MockEventSource.instances[0];
     await act(() => {
-      es._emit({ step: 'progress', message: 'Submitting artwork 1', current: 1, total: 3 });
+      capturedOnMessage({ step: 'progress', message: 'Submitting artwork 1', current: 1, total: 3 });
     });
 
     expect(screen.getByText('1 / 3 artworks')).toBeInTheDocument();
@@ -147,16 +138,14 @@ describe('SubmitModal', () => {
     await user.type(screen.getByPlaceholderText('Enter your codename'), 'alice');
     await user.click(screen.getByText('Submit'));
 
-    const es = MockEventSource.instances[0];
     await act(() => {
-      es._emit({ step: 'progress', message: 'Submitted 1', current: 1, total: 1 });
-      es._emit({ step: 'done', message: 'All done! 1 artwork submitted.' });
+      capturedOnMessage({ step: 'progress', message: 'Submitted 1', current: 1, total: 1 });
+      capturedOnMessage({ step: 'done', message: 'All done! 1 artwork submitted.' });
     });
 
     expect(screen.getByText('All done! 1 artwork submitted.', { selector: '.submit-result-message' })).toBeInTheDocument();
-    expect(screen.getByText('✓')).toBeInTheDocument();
+    expect(screen.getByText('\u2713')).toBeInTheDocument();
     expect(screen.getByText('Close')).toBeInTheDocument();
-    expect(es.closed).toBe(true);
   });
 
   it('shows error state on error message', async () => {
@@ -166,14 +155,12 @@ describe('SubmitModal', () => {
     await user.type(screen.getByPlaceholderText('Enter your codename'), 'alice');
     await user.click(screen.getByText('Submit'));
 
-    const es = MockEventSource.instances[0];
     await act(() => {
-      es._emit({ step: 'error', message: 'Login failed' });
+      capturedOnMessage({ step: 'error', message: 'Login failed' });
     });
 
     expect(screen.getByText('Login failed', { selector: '.submit-result-message' })).toBeInTheDocument();
-    expect(screen.getByText('✗')).toBeInTheDocument();
-    expect(es.closed).toBe(true);
+    expect(screen.getByText('\u2717')).toBeInTheDocument();
   });
 
   it('does not close on overlay click during submission', async () => {
@@ -184,7 +171,6 @@ describe('SubmitModal', () => {
     await user.type(screen.getByPlaceholderText('Enter your codename'), 'alice');
     await user.click(screen.getByText('Submit'));
 
-    // The overlay click handler is disabled during submitting
     const overlay = screen.getByText('Starting...').closest('.modal-overlay');
     await user.click(overlay);
 
@@ -212,9 +198,8 @@ describe('SubmitModal', () => {
     await user.type(screen.getByPlaceholderText('Enter your codename'), 'alice');
     await user.click(screen.getByText('Submit'));
 
-    const es = MockEventSource.instances[0];
     await act(() => {
-      es._emit({ step: 'done', message: 'All done!' });
+      capturedOnMessage({ step: 'done', message: 'All done!' });
     });
 
     await user.click(screen.getByText('Close'));

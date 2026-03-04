@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import session from 'express-session';
@@ -30,6 +31,9 @@ const CLIENT_DIST = resolve(__dirname, '..', 'client', 'dist');
 // Trust proxy (Caddy terminates TLS)
 app.set('trust proxy', 1);
 
+// Security headers
+app.use(helmet());
+
 // Lock down CORS: disabled in production (same-origin via Caddy), allow Vite dev server in dev
 app.use(cors({
   origin: isProduction ? false : 'http://localhost:5173',
@@ -41,6 +45,7 @@ app.use(express.json());
 // Session middleware
 const BetterSqliteStore = SqliteStore(session);
 app.use(session({
+  name: 'sid',
   store: new BetterSqliteStore({ client: db, expired: { clear: true, intervalMs: 900000 } }),
   secret: process.env.SESSION_SECRET || 'picture-sorter-dev-secret',
   resave: false,

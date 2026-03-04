@@ -277,7 +277,7 @@ describe('GET /api/submit', () => {
   });
 
   it('returns 400 when codename is missing', async () => {
-    const res = await request(app).get('/api/submit').expect(400);
+    const res = await request(app).post('/api/submit').expect(400);
 
     assert.deepEqual(res.body, { error: 'codename is required' });
   });
@@ -290,7 +290,7 @@ describe('GET /api/submit', () => {
     });
 
     const res = await request(app)
-      .get('/api/submit?codename=test')
+      .post('/api/submit?codename=test')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -330,7 +330,7 @@ describe('GET /api/submit', () => {
     });
 
     const res = await request(app)
-      .get('/api/submit?codename=badcode')
+      .post('/api/submit?codename=badcode')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -348,7 +348,7 @@ describe('GET /api/submit', () => {
     globalThis.fetch = createMockFetch();
 
     const res = await request(app)
-      .get('/api/submit?codename=testuser')
+      .post('/api/submit?codename=testuser')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -393,7 +393,7 @@ describe('GET /api/submit', () => {
     });
 
     const res = await request(app)
-      .get('/api/submit?codename=testuser')
+      .post('/api/submit?codename=testuser')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -431,7 +431,7 @@ describe('GET /api/submit', () => {
     globalThis.fetch = createMockFetch();
 
     const res = await request(app)
-      .get('/api/submit?codename=testuser')
+      .post('/api/submit?codename=testuser')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -500,7 +500,7 @@ describe('GET /api/submit', () => {
     };
 
     await request(app)
-      .get('/api/submit?codename=testuser')
+      .post('/api/submit?codename=testuser')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -518,7 +518,7 @@ describe('GET /api/submit', () => {
     };
 
     const res = await request(app)
-      .get('/api/submit?codename=testuser')
+      .post('/api/submit?codename=testuser')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
@@ -549,7 +549,7 @@ describe('GET /api/submit', () => {
     });
 
     const res = await request(app)
-      .get('/api/submit?codename=testuser')
+      .post('/api/submit?codename=testuser')
       .buffer(true)
       .parse((res, cb) => {
         let data = '';
