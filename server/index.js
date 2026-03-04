@@ -15,11 +15,25 @@ import { requireAuth, requireAdmin } from './middleware/auth.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const THUMBNAILS_DIR = process.env.THUMBNAILS_DIR || resolve(__dirname, '..', 'data', 'thumbnails');
 
+// Crash on missing session secret in production
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable is required in production');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CLIENT_DIST = resolve(__dirname, '..', 'client', 'dist');
 
-app.use(cors());
+// Trust proxy (Caddy terminates TLS)
+app.set('trust proxy', 1);
+
+// Lock down CORS: disabled in production (same-origin via Caddy), allow Vite dev server in dev
+app.use(cors({
+  origin: isProduction ? false : 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 // Session middleware
@@ -33,6 +47,7 @@ app.use(session({
     maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
     httpOnly: true,
     sameSite: 'lax',
+    secure: isProduction,
   },
 }));
 
