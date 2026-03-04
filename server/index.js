@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import morgan from 'morgan';
 import session from 'express-session';
 import SqliteStore from 'better-sqlite3-session-store';
 import { resolve, dirname } from 'path';
@@ -34,6 +35,7 @@ app.use(cors({
   origin: isProduction ? false : 'http://localhost:5173',
   credentials: true,
 }));
+app.use(morgan(isProduction ? 'combined' : 'dev'));
 app.use(express.json());
 
 // Session middleware
