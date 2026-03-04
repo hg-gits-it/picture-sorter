@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import session from 'express-session';
@@ -29,6 +30,9 @@ const CLIENT_DIST = resolve(__dirname, '..', 'client', 'dist');
 
 // Trust proxy (Caddy terminates TLS)
 app.set('trust proxy', 1);
+
+// Security headers
+app.use(helmet());
 
 // Lock down CORS: disabled in production (same-origin via Caddy), allow Vite dev server in dev
 app.use(cors({
