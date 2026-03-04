@@ -66,7 +66,7 @@ client/src/
 | `GET`   | `/api/showtime/photos`                   | List photos for showtime mode                    |
 | `PATCH` | `/api/showtime/photos/:id/take`          | Mark artwork as claimed                          |
 | `PATCH` | `/api/showtime/photos/:id/restore`       | Restore claimed artwork                          |
-| `GET`   | `/api/submit?codename=`                  | SSE stream: submit rankings to show website      |
+| `POST`  | `/api/submit`                            | SSE stream: submit rankings to show website      |
 
 ## Tag System
 

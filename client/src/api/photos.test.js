@@ -6,7 +6,7 @@ import {
   triggerScan,
   thumbnailUrl,
   fullImageUrl,
-  submitUrl,
+  startSubmit,
   fetchShowtimePhotos,
   takePhoto,
   restorePhoto,
@@ -161,13 +161,36 @@ describe('triggerScan', () => {
   });
 });
 
-describe('submitUrl', () => {
-  it('builds submit URL with codename', () => {
-    expect(submitUrl('testuser')).toBe('/api/submit?codename=testuser');
-  });
+describe('startSubmit', () => {
+  it('sends POST with codename and streams SSE messages', async () => {
+    const messages = [];
+    const sseData = 'data: {"step":"login","message":"Logging in..."}\n\ndata: {"step":"done","message":"Done!"}\n\n';
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(sseData));
+        controller.close();
+      },
+    });
 
-  it('encodes special characters in codename', () => {
-    expect(submitUrl('a b&c')).toBe('/api/submit?codename=a%20b%26c');
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: stream,
+    });
+
+    await startSubmit('testuser', {
+      onMessage: (data) => messages.push(data),
+      onError: vi.fn(),
+      signal: new AbortController().signal,
+    });
+
+    expect(fetch).toHaveBeenCalledWith('/api/submit', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ codename: 'testuser' }),
+    }));
+    expect(messages).toHaveLength(2);
+    expect(messages[0].step).toBe('login');
+    expect(messages[1].step).toBe('done');
   });
 });
 

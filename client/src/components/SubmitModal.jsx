@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { submitUrl } from '../api/photos.js';
+import { startSubmit } from '../api/photos.js';
 
 export default function SubmitModal({ open, onClose }) {
   const [codename, setCodename] = useState('');
@@ -7,7 +7,7 @@ export default function SubmitModal({ open, onClose }) {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [log, setLog] = useState([]);
   const [resultMessage, setResultMessage] = useState('');
-  const eventSourceRef = useRef(null);
+  const abortRef = useRef(null);
   const logEndRef = useRef(null);
 
   const addLog = useCallback((msg) => {
@@ -31,13 +31,11 @@ export default function SubmitModal({ open, onClose }) {
     return () => window.removeEventListener('keydown', handleKey);
   }, [open, state, onClose]);
 
-  // Cleanup EventSource on unmount or close
+  // Cleanup on close
   useEffect(() => {
-    if (!open) {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
+    if (!open && abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
     }
   }, [open]);
 
@@ -49,46 +47,42 @@ export default function SubmitModal({ open, onClose }) {
     setProgress({ current: 0, total: 0 });
     setResultMessage('');
 
-    const es = new EventSource(submitUrl(codename.trim()));
-    eventSourceRef.current = es;
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    es.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    startSubmit(codename.trim(), {
+      signal: controller.signal,
+      onMessage: (data) => {
+        addLog(data.message);
 
-      addLog(data.message);
+        if (data.total) {
+          setProgress({ current: data.current, total: data.total });
+        }
 
-      if (data.total) {
-        setProgress({ current: data.current, total: data.total });
-      }
-
-      if (data.step === 'done') {
-        setState('done');
-        setResultMessage(data.message);
-        es.close();
-        eventSourceRef.current = null;
-      } else if (data.step === 'error') {
-        setState('error');
-        setResultMessage(data.message);
-        es.close();
-        eventSourceRef.current = null;
-      }
-    };
-
-    es.onerror = () => {
-      if (state === 'submitting') {
-        setState('error');
-        setResultMessage('Connection lost.');
-        addLog('Connection lost.');
-      }
-      es.close();
-      eventSourceRef.current = null;
-    };
+        if (data.step === 'done') {
+          setState('done');
+          setResultMessage(data.message);
+          abortRef.current = null;
+        } else if (data.step === 'error') {
+          setState('error');
+          setResultMessage(data.message);
+          abortRef.current = null;
+        }
+      },
+      onError: () => {},
+    }).catch((err) => {
+      if (err.name === 'AbortError') return;
+      setState('error');
+      setResultMessage('Connection lost.');
+      addLog('Connection lost.');
+      abortRef.current = null;
+    });
   }
 
   function handleClose() {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
     }
     setState('idle');
     setLog([]);

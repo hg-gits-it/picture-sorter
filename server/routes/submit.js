@@ -180,8 +180,8 @@ async function logout(session) {
   }
 }
 
-router.get('/', async (req, res) => {
-  const { codename } = req.query;
+router.post('/', async (req, res) => {
+  const codename = req.body?.codename || req.query?.codename;
   if (!codename) {
     res.status(400).json({ error: 'codename is required' });
     return;
