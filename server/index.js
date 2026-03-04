@@ -49,7 +49,7 @@ app.use(session({
     maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
     httpOnly: true,
     sameSite: 'lax',
-    secure: isProduction,
+    secure: process.env.SECURE_COOKIE === 'true',
   },
 }));
 

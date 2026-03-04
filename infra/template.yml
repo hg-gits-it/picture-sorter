@@ -189,6 +189,7 @@ Resources:
           --restart unless-stopped \
           -p 3001:3001 \
           --env-file /mnt/data/.env.production \
+          -e SECURE_COOKIE=true \
           -v /mnt/data:/app/data \
           -v /mnt/data/photos:/app/photos \
           ghcr.io/hg-gits-it/picture-sorter:latest
