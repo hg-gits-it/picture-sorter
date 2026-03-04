@@ -60,6 +60,11 @@ Resources:
             Protocol: tcp
             AccessFrom: '0.0.0.0/0'
             AccessType: public
+          - FromPort: 443
+            ToPort: 443
+            Protocol: tcp
+            AccessFrom: '0.0.0.0/0'
+            AccessType: public
       Hardware:
         Disks:
           - DiskName: !Ref DiskName
@@ -166,7 +171,7 @@ Resources:
         # Configure Caddy
         echo "=== Configuring Caddy ==="
         cat > /etc/caddy/Caddyfile << 'CADDYEOF'
-        http://:80 {
+        artsorter.com {
             reverse_proxy localhost:3001
         }
         CADDYEOF
