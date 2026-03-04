@@ -184,6 +184,9 @@ Resources:
         echo "$GHCR_TOKEN" | docker login ghcr.io -u gha --password-stdin
         docker pull ghcr.io/hg-gits-it/picture-sorter:latest
 
+        # Ensure data dir is writable by the non-root container user (UID 1001)
+        chown -R 1001:1001 /mnt/data
+
         docker run -d \
           --name picture-sorter \
           --restart unless-stopped \

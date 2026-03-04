@@ -21,8 +21,8 @@ COPY package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/server/node_modules ./server/node_modules
 COPY --from=build /app/client/dist ./client/dist
-RUN addgroup -S app && adduser -S app -G app
-RUN chown -R app:app /app
+RUN addgroup -g 1001 -S app && adduser -u 1001 -S app -G app
+RUN mkdir -p /app/data && chown -R app:app /app
 USER app
 ENV NODE_ENV=production PORT=3001
 EXPOSE 3001
