@@ -11,7 +11,11 @@ import {
   takePhoto,
   restorePhoto,
   login,
-  register,
+  setup,
+  fetchSetupStatus,
+  fetchUsers,
+  createUser,
+  deleteUser,
   logout,
   fetchMe,
 } from './photos.js';
@@ -271,19 +275,70 @@ describe('login', () => {
   });
 });
 
-describe('register', () => {
+describe('setup', () => {
   it('sends POST with credentials', async () => {
-    globalThis.fetch = mockFetch({ id: 1, username: 'bob', isAdmin: true });
+    globalThis.fetch = mockFetch({ id: 1, username: 'admin', isAdmin: true });
 
-    const result = await register('bob', 'pass');
+    const result = await setup('admin', 'pass');
 
-    expect(fetch).toHaveBeenCalledWith('/api/auth/register', {
+    expect(fetch).toHaveBeenCalledWith('/api/auth/setup', {
       credentials: 'include',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'bob', password: 'pass' }),
+      body: JSON.stringify({ username: 'admin', password: 'pass' }),
     });
     expect(result.isAdmin).toBe(true);
+  });
+});
+
+describe('fetchSetupStatus', () => {
+  it('returns setup status', async () => {
+    globalThis.fetch = mockFetch({ needsSetup: true });
+
+    const result = await fetchSetupStatus();
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/setup-status', { credentials: 'include' });
+    expect(result.needsSetup).toBe(true);
+  });
+});
+
+describe('fetchUsers', () => {
+  it('fetches user list', async () => {
+    globalThis.fetch = mockFetch([{ id: 1, username: 'admin' }]);
+
+    const result = await fetchUsers();
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/users', { credentials: 'include' });
+    expect(result).toHaveLength(1);
+  });
+});
+
+describe('createUser', () => {
+  it('sends POST with username', async () => {
+    globalThis.fetch = mockFetch({ id: 2, username: 'newuser', isAdmin: false });
+
+    const result = await createUser('newuser');
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/users', {
+      credentials: 'include',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'newuser' }),
+    });
+    expect(result.username).toBe('newuser');
+  });
+});
+
+describe('deleteUser', () => {
+  it('sends DELETE request', async () => {
+    globalThis.fetch = mockFetch({ ok: true });
+
+    await deleteUser(5);
+
+    expect(fetch).toHaveBeenCalledWith('/api/auth/users/5', {
+      credentials: 'include',
+      method: 'DELETE',
+    });
   });
 });
 

@@ -17,8 +17,8 @@ export async function login(username, password) {
   return res.json();
 }
 
-export async function register(username, password) {
-  const res = await fetch(`${API_BASE}/auth/register`, {
+export async function setup(username, password) {
+  const res = await fetch(`${API_BASE}/auth/setup`, {
     ...fetchOpts,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -26,7 +26,45 @@ export async function register(username, password) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Registration failed');
+    throw new Error(data.error || 'Setup failed');
+  }
+  return res.json();
+}
+
+export async function fetchSetupStatus() {
+  const res = await fetch(`${API_BASE}/auth/setup-status`, fetchOpts);
+  if (!res.ok) throw new Error('Failed to fetch setup status');
+  return res.json();
+}
+
+export async function fetchUsers() {
+  const res = await fetch(`${API_BASE}/auth/users`, fetchOpts);
+  if (!res.ok) throw new Error('Failed to fetch users');
+  return res.json();
+}
+
+export async function createUser(username) {
+  const res = await fetch(`${API_BASE}/auth/users`, {
+    ...fetchOpts,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to create user');
+  }
+  return res.json();
+}
+
+export async function deleteUser(id) {
+  const res = await fetch(`${API_BASE}/auth/users/${id}`, {
+    ...fetchOpts,
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to delete user');
   }
   return res.json();
 }
