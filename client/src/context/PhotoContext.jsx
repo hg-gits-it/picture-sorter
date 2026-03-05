@@ -49,6 +49,7 @@ export function PhotoProvider({ children }) {
       const params = {};
       if (viewMode === 'showId') {
         params.sort = 'show_id';
+        if (searchQuery) params.search = searchQuery;
         if (hideClaimed) params.hideClaimed = true;
       } else {
         if (filterTag !== 'all') params.tag = filterTag;

@@ -208,7 +208,7 @@ describe('PhotoProvider', () => {
     });
   });
 
-  it('omits tag and search params in showId mode', async () => {
+  it('omits tag param but includes search in showId mode', async () => {
     const { ctx } = renderWithProvider();
 
     await waitFor(() => {

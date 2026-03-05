@@ -58,7 +58,7 @@ function AppContent() {
 
       <NavBar />
 
-      {viewMode === 'rank' && <FilterBar />}
+      <FilterBar showTagFilters={viewMode === 'rank'} />
 
       <main className="app-main">
         {loading && photos.length === 0 && (

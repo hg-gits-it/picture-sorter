@@ -111,6 +111,15 @@ describe('FilterBar', () => {
     expect(setHideClaimed).toHaveBeenCalledWith(false);
   });
 
+  it('hides tag filter buttons when showTagFilters is false', () => {
+    render(<FilterBar showTagFilters={false} />);
+
+    expect(screen.queryByText('All')).not.toBeInTheDocument();
+    expect(screen.queryByText('Love')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox')).toBeInTheDocument();
+  });
+
   it('shows 0 for missing count keys', () => {
     usePhotos.mockReturnValue({
       ...defaultContext,

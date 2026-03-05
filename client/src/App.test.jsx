@@ -20,7 +20,9 @@ vi.mock('./components/NavBar.jsx', () => ({
 }));
 
 vi.mock('./components/FilterBar.jsx', () => ({
-  default: () => <div data-testid="filter-bar" />,
+  default: ({ showTagFilters }) => (
+    <div data-testid="filter-bar" data-show-tag-filters={String(showTagFilters)} />
+  ),
 }));
 
 vi.mock('./components/PhotoGrid.jsx', () => ({
@@ -136,13 +138,13 @@ describe('App layout', () => {
 });
 
 describe('View mode: showId', () => {
-  it('renders flat PhotoGrid without FilterBar when viewMode is showId', () => {
+  it('renders flat PhotoGrid with FilterBar (no tag filters) when viewMode is showId', () => {
     usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
     render(<App />);
 
     expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
     expect(screen.getByTestId('photo-grid')).toHaveAttribute('data-draggable', 'false');
-    expect(screen.queryByTestId('filter-bar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('filter-bar')).toHaveAttribute('data-show-tag-filters', 'false');
     expect(screen.queryByTestId('tag-group-love')).not.toBeInTheDocument();
     expect(screen.queryByTestId('unrated-section')).not.toBeInTheDocument();
   });
@@ -164,9 +166,9 @@ describe('View mode: showId', () => {
     expect(screen.getByTestId('nav-bar')).toBeInTheDocument();
   });
 
-  it('renders FilterBar in rank mode', () => {
+  it('renders FilterBar with tag filters in rank mode', () => {
     render(<App />);
-    expect(screen.getByTestId('filter-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('filter-bar')).toHaveAttribute('data-show-tag-filters', 'true');
   });
 });
 
