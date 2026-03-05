@@ -28,6 +28,13 @@ function reducer(state, action) {
       return { ...state, selectedPhoto: action.photo };
     case 'SET_VIEW_MODE':
       return { ...state, viewMode: action.mode };
+    case 'UPDATE_PHOTO_TAG':
+      return {
+        ...state,
+        photos: state.photos.map((p) =>
+          p.id === action.id ? { ...p, tag: action.tag } : p,
+        ),
+      };
     case 'SET_LOADING':
       return { ...state, loading: true };
     default:
@@ -96,7 +103,11 @@ export function PhotoProvider({ children }) {
 
   const tagPhoto = useCallback(async (id, tag) => {
     await api.tagPhoto(id, tag);
-    await loadPhotos();
+    if (stateRef.current.viewMode === 'showId') {
+      dispatch({ type: 'UPDATE_PHOTO_TAG', id, tag });
+    } else {
+      await loadPhotos();
+    }
   }, [loadPhotos]);
 
   const reorderPhoto = useCallback(async (id, newPosition) => {

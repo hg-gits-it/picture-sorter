@@ -131,7 +131,7 @@ describe('PhotoProvider', () => {
     });
   });
 
-  it('tagPhoto calls api.tagPhoto then reloads', async () => {
+  it('tagPhoto calls api.tagPhoto then reloads in rank mode', async () => {
     const { ctx } = renderWithProvider();
 
     await waitFor(() => {
@@ -146,6 +146,41 @@ describe('PhotoProvider', () => {
 
     expect(api.tagPhoto).toHaveBeenCalledWith(1, 'love');
     expect(api.fetchPhotos).toHaveBeenCalled();
+  });
+
+  it('tagPhoto updates tag locally without re-fetching in showId mode', async () => {
+    api.fetchPhotos.mockResolvedValue({
+      photos: [
+        { id: 1, filename: 'a.jpg', tag: 'unrated' },
+        { id: 2, filename: 'b.jpg', tag: 'unrated' },
+      ],
+      counts: { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 },
+    });
+
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    // Switch to showId mode
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
+
+    api.fetchPhotos.mockClear();
+
+    await act(async () => {
+      await ctx.current.tagPhoto(1, 'love');
+    });
+
+    expect(api.tagPhoto).toHaveBeenCalledWith(1, 'love');
+    // Should NOT re-fetch in showId mode
+    expect(api.fetchPhotos).not.toHaveBeenCalled();
   });
 
   it('reorderPhoto calls api.reorderPhoto then reloads', async () => {
