@@ -15,8 +15,20 @@ vi.mock('./context/AuthContext.jsx', () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock('./components/NavBar.jsx', () => ({
+  default: () => <div data-testid="nav-bar" />,
+}));
+
 vi.mock('./components/FilterBar.jsx', () => ({
-  default: () => <div data-testid="filter-bar" />,
+  default: ({ showTagFilters }) => (
+    <div data-testid="filter-bar" data-show-tag-filters={String(showTagFilters)} />
+  ),
+}));
+
+vi.mock('./components/PhotoGrid.jsx', () => ({
+  default: ({ photos, draggable }) => (
+    <div data-testid="photo-grid" data-count={photos.length} data-draggable={String(draggable)} />
+  ),
 }));
 
 vi.mock('./components/TagGroup.jsx', () => ({
@@ -54,6 +66,7 @@ const baseContext = {
   scanPhotos: vi.fn(),
   loading: false,
   filterTag: 'all',
+  viewMode: 'rank',
 };
 
 const adminUser = { id: 1, username: 'admin', isAdmin: true };
@@ -121,6 +134,41 @@ describe('App layout', () => {
 
     // When filtered, TagGroup receives the full photos array (API already filters)
     expect(screen.getByTestId('tag-group-like')).toHaveAttribute('data-count', '7');
+  });
+});
+
+describe('View mode: showId', () => {
+  it('renders flat PhotoGrid with FilterBar (no tag filters) when viewMode is showId', () => {
+    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
+    render(<App />);
+
+    expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
+    expect(screen.getByTestId('photo-grid')).toHaveAttribute('data-draggable', 'false');
+    expect(screen.getByTestId('filter-bar')).toHaveAttribute('data-show-tag-filters', 'false');
+    expect(screen.queryByTestId('tag-group-love')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('unrated-section')).not.toBeInTheDocument();
+  });
+
+  it('passes all photos to PhotoGrid in showId mode', () => {
+    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
+    render(<App />);
+
+    expect(screen.getByTestId('photo-grid')).toHaveAttribute('data-count', '7');
+  });
+
+  it('renders NavBar in both view modes', () => {
+    render(<App />);
+    expect(screen.getByTestId('nav-bar')).toBeInTheDocument();
+
+    cleanup();
+    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
+    render(<App />);
+    expect(screen.getByTestId('nav-bar')).toBeInTheDocument();
+  });
+
+  it('renders FilterBar with tag filters in rank mode', () => {
+    render(<App />);
+    expect(screen.getByTestId('filter-bar')).toHaveAttribute('data-show-tag-filters', 'true');
   });
 });
 

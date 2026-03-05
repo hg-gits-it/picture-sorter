@@ -28,6 +28,7 @@ function TestConsumer({ onContext }) {
       <span data-testid="filterTag">{ctx.filterTag}</span>
       <span data-testid="searchQuery">{ctx.searchQuery}</span>
       <span data-testid="hideClaimed">{String(ctx.hideClaimed)}</span>
+      <span data-testid="viewMode">{ctx.viewMode}</span>
       <span data-testid="selectedPhoto">{ctx.selectedPhoto ? ctx.selectedPhoto.id : 'null'}</span>
     </div>
   );
@@ -130,7 +131,7 @@ describe('PhotoProvider', () => {
     });
   });
 
-  it('tagPhoto calls api.tagPhoto then reloads', async () => {
+  it('tagPhoto calls api.tagPhoto then reloads in rank mode', async () => {
     const { ctx } = renderWithProvider();
 
     await waitFor(() => {
@@ -145,6 +146,41 @@ describe('PhotoProvider', () => {
 
     expect(api.tagPhoto).toHaveBeenCalledWith(1, 'love');
     expect(api.fetchPhotos).toHaveBeenCalled();
+  });
+
+  it('tagPhoto updates tag locally without re-fetching in showId mode', async () => {
+    api.fetchPhotos.mockResolvedValue({
+      photos: [
+        { id: 1, filename: 'a.jpg', tag: 'unrated' },
+        { id: 2, filename: 'b.jpg', tag: 'unrated' },
+      ],
+      counts: { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 },
+    });
+
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    // Switch to showId mode
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
+
+    api.fetchPhotos.mockClear();
+
+    await act(async () => {
+      await ctx.current.tagPhoto(1, 'love');
+    });
+
+    expect(api.tagPhoto).toHaveBeenCalledWith(1, 'love');
+    // Should NOT re-fetch in showId mode
+    expect(api.fetchPhotos).not.toHaveBeenCalled();
   });
 
   it('reorderPhoto calls api.reorderPhoto then reloads', async () => {
@@ -179,6 +215,60 @@ describe('PhotoProvider', () => {
 
     expect(api.triggerScan).toHaveBeenCalled();
     expect(api.fetchPhotos).toHaveBeenCalled();
+  });
+
+  it('defaults viewMode to rank', async () => {
+    renderWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('viewMode').textContent).toBe('rank');
+    });
+  });
+
+  it('reloads with sort=show_id when setViewMode is called with showId', async () => {
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    api.fetchPhotos.mockClear();
+
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
+  });
+
+  it('omits tag param but includes search in showId mode', async () => {
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    // Set filter and search first
+    await act(() => {
+      ctx.current.setFilterTag('love');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ tag: 'love', hideClaimed: true });
+    });
+
+    api.fetchPhotos.mockClear();
+
+    // Switch to showId mode — should not include tag or search
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
   });
 
   it('setSelectedPhoto updates selectedPhoto state', async () => {

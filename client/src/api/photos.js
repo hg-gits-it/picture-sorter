@@ -85,11 +85,12 @@ export async function fetchMe() {
 }
 
 // Photos API
-export async function fetchPhotos({ tag, search, hideClaimed } = {}) {
+export async function fetchPhotos({ tag, search, hideClaimed, sort } = {}) {
   const params = new URLSearchParams();
   if (tag) params.set('tag', tag);
   if (search) params.set('search', search);
   if (hideClaimed) params.set('hideClaimed', '1');
+  if (sort) params.set('sort', sort);
   const qs = params.toString();
   const res = await fetch(`${API_BASE}/photos${qs ? '?' + qs : ''}`, fetchOpts);
   if (!res.ok) throw new Error('Failed to fetch photos');

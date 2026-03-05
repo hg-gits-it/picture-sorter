@@ -8,7 +8,7 @@ const FILTERS = [
   { key: 'unrated', label: 'Unrated' },
 ];
 
-export default function FilterBar() {
+export default function FilterBar({ showTagFilters = true }) {
   const { filterTag, setFilterTag, searchQuery, setSearchQuery, counts, hideClaimed, setHideClaimed } =
     usePhotos();
 
@@ -20,27 +20,21 @@ export default function FilterBar() {
   return (
     <div className="filter-bar">
       <div className="filter-bar-top">
-        <div className="filter-buttons">
-          {FILTERS.map(({ key, label, icon }) => (
-            <button
-              key={label}
-              className={`filter-btn ${filterTag === key ? 'active' : ''} filter-${key}`}
-              onClick={() => setFilterTag(key)}
-            >
-              {icon && <span className="filter-icon">{icon}</span>}
-              {label}
-              <span className="filter-count">{getCount(key)}</span>
-            </button>
-          ))}
-        </div>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
+        {showTagFilters && (
+          <div className="filter-buttons">
+            {FILTERS.map(({ key, label, icon }) => (
+              <button
+                key={label}
+                className={`filter-btn ${filterTag === key ? 'active' : ''} filter-${key}`}
+                onClick={() => setFilterTag(key)}
+              >
+                {icon && <span className="filter-icon">{icon}</span>}
+                {label}
+                <span className="filter-count">{getCount(key)}</span>
+              </button>
+            ))}
+          </div>
+        )}
       <label className="toggle-switch" title={hideClaimed ? 'Showing unclaimed only' : 'Showing all pieces'}>
         <input
           type="checkbox"
@@ -50,6 +44,14 @@ export default function FilterBar() {
         <span className="toggle-slider" />
         <span className="toggle-label">Hide claimed</span>
       </label>
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
     </div>
   );
 }

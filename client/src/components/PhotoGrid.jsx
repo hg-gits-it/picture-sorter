@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import PhotoCard from './PhotoCard.jsx';
 import { usePhotos } from '../context/PhotoContext.jsx';
 
-export default function PhotoGrid({ photos, draggable }) {
+export default function PhotoGrid({ photos, draggable, showRank = true }) {
   const { reorderPhoto } = usePhotos();
   const dragItemRef = useRef(null);
 
@@ -41,6 +41,7 @@ export default function PhotoGrid({ photos, draggable }) {
           key={photo.id}
           photo={photo}
           draggable={draggable}
+          showRank={showRank}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDrop={handleDrop}

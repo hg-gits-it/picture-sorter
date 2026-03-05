@@ -6,6 +6,7 @@ import TagButtons from './TagButtons.jsx';
 export default function PhotoCard({
   photo,
   draggable,
+  showRank = true,
   onDragStart,
   onDragOver,
   onDrop,
@@ -64,7 +65,8 @@ export default function PhotoCard({
             )}
           </span>
         </div>
-        {photo.tag !== 'unrated' &&
+        {showRank &&
+          photo.tag !== 'unrated' &&
           photo.group_position != null &&
           (editing ? (
             <input

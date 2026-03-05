@@ -11,6 +11,7 @@ const initialState = {
   hideClaimed: true,
   selectedPhoto: null,
   loading: false,
+  viewMode: 'rank',
 };
 
 function reducer(state, action) {
@@ -25,6 +26,15 @@ function reducer(state, action) {
       return { ...state, hideClaimed: action.value };
     case 'SET_SELECTED':
       return { ...state, selectedPhoto: action.photo };
+    case 'SET_VIEW_MODE':
+      return { ...state, viewMode: action.mode };
+    case 'UPDATE_PHOTO_TAG':
+      return {
+        ...state,
+        photos: state.photos.map((p) =>
+          p.id === action.id ? { ...p, tag: action.tag } : p,
+        ),
+      };
     case 'SET_LOADING':
       return { ...state, loading: true };
     default:
@@ -41,12 +51,18 @@ export function PhotoProvider({ children }) {
 
   const loadPhotos = useCallback(async () => {
     dispatch({ type: 'SET_LOADING' });
-    const { filterTag, searchQuery, hideClaimed } = stateRef.current;
+    const { filterTag, searchQuery, hideClaimed, viewMode } = stateRef.current;
     try {
       const params = {};
-      if (filterTag !== 'all') params.tag = filterTag;
-      if (searchQuery) params.search = searchQuery;
-      if (hideClaimed) params.hideClaimed = true;
+      if (viewMode === 'showId') {
+        params.sort = 'show_id';
+        if (searchQuery) params.search = searchQuery;
+        if (hideClaimed) params.hideClaimed = true;
+      } else {
+        if (filterTag !== 'all') params.tag = filterTag;
+        if (searchQuery) params.search = searchQuery;
+        if (hideClaimed) params.hideClaimed = true;
+      }
       const data = await api.fetchPhotos(params);
       dispatch({ type: 'SET_PHOTOS', photos: data.photos, counts: data.counts });
     } catch (err) {
@@ -54,10 +70,10 @@ export function PhotoProvider({ children }) {
     }
   }, []);
 
-  // Reload when filter or hideClaimed changes (immediate)
+  // Reload when filter, hideClaimed, or viewMode changes (immediate)
   useEffect(() => {
     loadPhotos();
-  }, [state.filterTag, state.hideClaimed, loadPhotos]);
+  }, [state.filterTag, state.hideClaimed, state.viewMode, loadPhotos]);
 
   // Debounce search
   useEffect(() => {
@@ -77,13 +93,21 @@ export function PhotoProvider({ children }) {
     dispatch({ type: 'SET_HIDE_CLAIMED', value });
   }, []);
 
+  const setViewMode = useCallback((mode) => {
+    dispatch({ type: 'SET_VIEW_MODE', mode });
+  }, []);
+
   const setSelectedPhoto = useCallback((photo) => {
     dispatch({ type: 'SET_SELECTED', photo });
   }, []);
 
   const tagPhoto = useCallback(async (id, tag) => {
     await api.tagPhoto(id, tag);
-    await loadPhotos();
+    if (stateRef.current.viewMode === 'showId') {
+      dispatch({ type: 'UPDATE_PHOTO_TAG', id, tag });
+    } else {
+      await loadPhotos();
+    }
   }, [loadPhotos]);
 
   const reorderPhoto = useCallback(async (id, newPosition) => {
@@ -101,6 +125,7 @@ export function PhotoProvider({ children }) {
     setFilterTag,
     setSearchQuery,
     setHideClaimed,
+    setViewMode,
     setSelectedPhoto,
     tagPhoto,
     reorderPhoto,
