@@ -1,0 +1,140 @@
+.user-management {
+  background: #1e1e36;
+  border-radius: 12px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.user-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-management-header h2 {
+  font-size: 1.3rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.user-management-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.user-management-close:hover {
+  color: #fff;
+}
+
+.user-management-form {
+  display: flex;
+  gap: 8px;
+}
+
+.user-management-input {
+  flex: 1;
+  padding: 10px 16px;
+  background: #2d2d44;
+  color: #e0e0e0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.user-management-input:focus {
+  border-color: #6c5ce7;
+}
+
+.user-management-input::placeholder {
+  color: #666;
+}
+
+.user-management-add-btn {
+  padding: 10px 20px;
+  background: #6c5ce7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.user-management-add-btn:hover {
+  background: #5a4bd1;
+}
+
+.user-management-error {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+}
+
+.user-management-loading {
+  color: #888;
+  text-align: center;
+  padding: 20px;
+}
+
+.user-management-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.user-management-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #2d2d44;
+  border-radius: 8px;
+}
+
+.user-management-username {
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-management-badge {
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.user-management-delete-btn {
+  padding: 4px 12px;
+  background: #3d3d55;
+  color: #ff6b6b;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.user-management-delete-btn:hover {
+  background: rgba(231, 76, 60, 0.2);
+}

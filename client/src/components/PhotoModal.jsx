@@ -2,6 +2,7 @@ import { useEffect, useMemo, useCallback } from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
 import { fullImageUrl } from '../api/photos.js';
 import TagButtons from './TagButtons.jsx';
+import '../styles/photo-modal.css';
 
 export default function PhotoModal() {
   const { selectedPhoto, setSelectedPhoto, photos, tagPhoto } = usePhotos();

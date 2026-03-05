@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { fetchSetupStatus } from '../api/photos.js';
+import '../styles/login.css';
 
 export default function LoginPage() {
   const { login, setup } = useAuth();

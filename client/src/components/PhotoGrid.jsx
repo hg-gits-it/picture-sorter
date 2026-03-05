@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import PhotoCard from './PhotoCard.jsx';
 import { usePhotos } from '../context/PhotoContext.jsx';
+import '../styles/photo-grid.css';
 
 export default function PhotoGrid({ photos, draggable, showRank = true }) {
   const { reorderPhoto } = usePhotos();

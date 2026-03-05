@@ -1,0 +1,205 @@
+.photo-card {
+  background: #2d2d44;
+  border-radius: 10px;
+  overflow: hidden;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.photo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.photo-card.draggable {
+  cursor: grab;
+}
+
+.photo-card.draggable:active {
+  cursor: grabbing;
+}
+
+.photo-card.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+
+.photo-card.taken {
+  opacity: 0.4;
+}
+
+.photo-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.photo-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-card-claimed {
+  position: absolute;
+  top: 12px;
+  right: -28px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 32px;
+  transform: rotate(45deg);
+}
+
+.photo-card-info {
+  padding: 8px 10px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.photo-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.photo-card-show-id {
+  font-size: 0.7rem;
+  color: #6c5ce7;
+  font-weight: 600;
+}
+
+.photo-card-title {
+  font-size: 0.8rem;
+  color: #e0e0e0;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.photo-card-artist {
+  font-size: 0.75rem;
+  color: #a0a0b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-card-details {
+  display: flex;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: #777;
+}
+
+.photo-card-medium {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-card-dimensions {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.photo-card-rank {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #a0a0b8;
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.photo-card-rank:hover {
+  color: #6c5ce7;
+}
+
+.photo-card-rank-edit-icon {
+  font-size: 0.65rem;
+  margin-left: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.photo-card-rank:hover .photo-card-rank-edit-icon {
+  opacity: 0.7;
+}
+
+.photo-card-rank-input {
+  width: 3em;
+  padding: 0 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e0e0e0;
+  background: #1a1a2e;
+  border: 1px solid #6c5ce7;
+  border-radius: 4px;
+  outline: none;
+  flex-shrink: 0;
+  margin-top: 2px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.photo-card-rank-input::-webkit-inner-spin-button,
+.photo-card-rank-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.photo-card-actions {
+  padding: 4px 10px 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.tag-btn {
+  flex: 1;
+  padding: 6px 0;
+  background: #3d3d55;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #888;
+}
+
+.tag-btn:hover {
+  background: #4d4d66;
+}
+
+.tag-btn.love.active {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: #e74c3c;
+}
+
+.tag-btn.like.active {
+  background: rgba(52, 152, 219, 0.2);
+  border-color: #27ae60;
+}
+
+.tag-btn.meh.active {
+  background: rgba(127, 140, 141, 0.2);
+  border-color: #3498db;
+}
+
+.tag-btn.tax_deduction.active {
+  background: rgba(39, 174, 96, 0.2);
+  border-color: #7f8c8d;
+}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
 import { TAGS } from '../constants/tags.js';
+import '../styles/filter-bar.css';
 
 const FILTERS = [
   { key: 'all', label: 'All' },

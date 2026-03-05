@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { startSubmit } from '../api/photos.js';
+import '../styles/submit-modal.css';
 
 export default function SubmitModal({ open, onClose }) {
   const [codename, setCodename] = useState('');

@@ -12,6 +12,7 @@ import {
   thumbnailUrl,
   fullImageUrl,
 } from '../api/photos.js';
+import '../styles/showtime.css';
 
 export default function ShowtimePage() {
   const [photos, setPhotos] = useState([]);

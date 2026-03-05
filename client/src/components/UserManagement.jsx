@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchUsers, createUser, deleteUser } from '../api/photos.js';
+import '../styles/user-management.css';
 
 export default function UserManagement({ onClose }) {
   const [users, setUsers] = useState([]);

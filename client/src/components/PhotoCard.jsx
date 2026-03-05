@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
 import { thumbnailUrl } from '../api/photos.js';
 import TagButtons from './TagButtons.jsx';
+import '../styles/photo-card.css';
 
 export default function PhotoCard({
   photo,

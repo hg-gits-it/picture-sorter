@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import '../styles/user-menu.css';
 
 export default function UserMenu() {
   const { user, logout } = useAuth();

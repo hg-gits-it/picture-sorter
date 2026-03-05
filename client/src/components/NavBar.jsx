@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePhotos } from '../context/PhotoContext.jsx';
+import '../styles/nav-bar.css';
 
 export default function NavBar() {
   const { viewMode, setViewMode } = usePhotos();
