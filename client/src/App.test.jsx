@@ -125,19 +125,24 @@ describe('App layout', () => {
 });
 
 describe('Admin vs regular user', () => {
-  it('shows Scan and Submit buttons for admin users', () => {
+  it('shows Scan Photos button for admin users', () => {
     render(<App />);
 
     expect(screen.getByText('Scan Photos')).toBeInTheDocument();
-    expect(screen.getByText('Submit to Show')).toBeInTheDocument();
   });
 
-  it('hides Scan and Submit buttons for non-admin users', () => {
+  it('hides Scan Photos button for non-admin users', () => {
     useAuth.mockReturnValue({ user: regularUser, logout: vi.fn() });
     render(<App />);
 
     expect(screen.queryByText('Scan Photos')).not.toBeInTheDocument();
-    expect(screen.queryByText('Submit to Show')).not.toBeInTheDocument();
+  });
+
+  it('shows Submit to Show button for all users', () => {
+    useAuth.mockReturnValue({ user: regularUser, logout: vi.fn() });
+    render(<App />);
+
+    expect(screen.getByText('Submit to Show')).toBeInTheDocument();
   });
 
   it('displays username and logout button', () => {

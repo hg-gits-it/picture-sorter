@@ -34,12 +34,6 @@ function AppContent() {
                 Scan Photos
               </button>
               <button
-                className="submit-btn"
-                onClick={() => setSubmitModalOpen(true)}
-              >
-                Submit to Show
-              </button>
-              <button
                 className="users-btn"
                 onClick={() => setUserMgmtOpen(true)}
               >
@@ -47,6 +41,12 @@ function AppContent() {
               </button>
             </>
           )}
+          <button
+            className="submit-btn"
+            onClick={() => setSubmitModalOpen(true)}
+          >
+            Submit to Show
+          </button>
           <span className="user-info">{user.username}</span>
           <button className="logout-btn" onClick={logout}>
             Log Out

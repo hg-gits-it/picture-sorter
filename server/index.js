@@ -64,7 +64,7 @@ app.use('/thumbnails', express.static(THUMBNAILS_DIR));
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/photos', requireAuth, photosRouter);
-app.use('/api/submit', requireAdmin, submitRouter);
+app.use('/api/submit', requireAuth, submitRouter);
 app.use('/api/showtime/photos', requireAdmin, showtimeRouter);
 app.use('/api/scan', requireAdmin, scanRouter);
 
