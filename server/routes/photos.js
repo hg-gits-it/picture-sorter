@@ -12,7 +12,41 @@ const router = Router();
 // GET /api/photos — list photos with computed global rank (per-user ratings)
 router.get('/', (req, res) => {
   const userId = req.session.userId;
-  const { tag, search, hideClaimed } = req.query;
+  const { tag, search, hideClaimed, sort } = req.query;
+
+  // Show ID sort mode: flat list ordered by show_id, ignore tag filter
+  if (sort === 'show_id') {
+    let where = [];
+    let whereParams = [];
+
+    if (search) {
+      where.push(
+        '(p.show_id LIKE ? OR p.artist LIKE ? OR p.title LIKE ? OR p.medium LIKE ?)',
+      );
+      whereParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    if (hideClaimed === '1') {
+      where.push('p.taken = 0');
+    }
+
+    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+
+    const sql = `
+      SELECT p.id, p.filename, p.taken, p.show_id, p.artist, p.title,
+             p.medium, p.dimensions, p.flickr_id, p.created_at,
+             COALESCE(ur.tag, 'unrated') as tag, ur.group_position,
+             NULL as global_rank
+      FROM photos p
+      LEFT JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
+      ${whereClause}
+      ORDER BY CAST(p.show_id AS INTEGER)
+    `;
+
+    const photos = db.prepare(sql).all(userId, ...whereParams);
+    const counts = { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 };
+    return res.json({ photos, counts });
+  }
 
   let where = [];
   let whereParams = [];

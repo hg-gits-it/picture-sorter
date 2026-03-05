@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { PhotoProvider, usePhotos } from './context/PhotoContext.jsx';
 import { useAuth } from './context/AuthContext.jsx';
+import NavBar from './components/NavBar.jsx';
 import FilterBar from './components/FilterBar.jsx';
 import TagGroup from './components/TagGroup.jsx';
 import UnratedSection from './components/UnratedSection.jsx';
+import PhotoGrid from './components/PhotoGrid.jsx';
 import PhotoModal from './components/PhotoModal.jsx';
 import SubmitModal from './components/SubmitModal.jsx';
 import UserManagement from './components/UserManagement.jsx';
 
 function AppContent() {
-  const { photos, scanPhotos, loading, filterTag } = usePhotos();
+  const { photos, scanPhotos, loading, filterTag, viewMode } = usePhotos();
   const { user, logout } = useAuth();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
   const [userMgmtOpen, setUserMgmtOpen] = useState(false);
@@ -54,7 +56,9 @@ function AppContent() {
         </div>
       </header>
 
-      <FilterBar />
+      <NavBar />
+
+      {viewMode === 'rank' && <FilterBar />}
 
       <main className="app-main">
         {loading && photos.length === 0 && (
@@ -67,7 +71,9 @@ function AppContent() {
           </div>
         )}
 
-        {showGrouped ? (
+        {viewMode === 'showId' ? (
+          <PhotoGrid photos={photos} draggable={false} showRank={false} />
+        ) : showGrouped ? (
           <>
             <TagGroup tag="love" photos={lovePhotos} />
             <TagGroup tag="like" photos={likePhotos} />

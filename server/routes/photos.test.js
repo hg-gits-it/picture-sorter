@@ -178,6 +178,64 @@ describe('GET /api/photos', () => {
     assert.deepEqual(showIds, ['5', '12', '30']);
   });
 
+  it('sort=show_id returns all photos ordered by show_id numerically', async () => {
+    insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1, show_id: '30' });
+    insertPhoto({ filename: 'b.jpg', show_id: '5' });
+    insertPhoto({ filename: 'c.jpg', tag: 'meh', group_position: 1, show_id: '12' });
+
+    const res = await request(app).get('/api/photos?sort=show_id').expect(200);
+    const showIds = res.body.photos.map((p) => p.show_id);
+
+    assert.deepEqual(showIds, ['5', '12', '30']);
+    assert.equal(res.body.photos.length, 3);
+  });
+
+  it('sort=show_id ignores tag filter param', async () => {
+    insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1, show_id: '1' });
+    insertPhoto({ filename: 'b.jpg', show_id: '2' });
+
+    const res = await request(app).get('/api/photos?sort=show_id&tag=love').expect(200);
+
+    // Should return all photos regardless of tag filter
+    assert.equal(res.body.photos.length, 2);
+  });
+
+  it('sort=show_id returns empty counts', async () => {
+    insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1, show_id: '1' });
+
+    const res = await request(app).get('/api/photos?sort=show_id').expect(200);
+
+    assert.equal(res.body.counts.total, 0);
+    assert.equal(res.body.counts.love, 0);
+  });
+
+  it('sort=show_id supports search param', async () => {
+    insertPhoto({ filename: 'a.jpg', artist: 'Picasso', show_id: '1' });
+    insertPhoto({ filename: 'b.jpg', artist: 'Monet', show_id: '2' });
+
+    const res = await request(app).get('/api/photos?sort=show_id&search=Picasso').expect(200);
+
+    assert.equal(res.body.photos.length, 1);
+    assert.equal(res.body.photos[0].artist, 'Picasso');
+  });
+
+  it('sort=show_id supports hideClaimed param', async () => {
+    insertPhoto({ filename: 'a.jpg', show_id: '1', taken: 0 });
+    insertPhoto({ filename: 'b.jpg', show_id: '2', taken: 1 });
+
+    const res = await request(app).get('/api/photos?sort=show_id&hideClaimed=1').expect(200);
+
+    assert.equal(res.body.photos.length, 1);
+  });
+
+  it('sort=show_id includes tag info from user_ratings', async () => {
+    insertPhoto({ filename: 'a.jpg', tag: 'love', group_position: 1, show_id: '1' });
+
+    const res = await request(app).get('/api/photos?sort=show_id').expect(200);
+
+    assert.equal(res.body.photos[0].tag, 'love');
+  });
+
   it('global rank computed correctly', async () => {
     insertPhoto({
       filename: 'a.jpg',

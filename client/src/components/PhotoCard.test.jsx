@@ -197,6 +197,12 @@ describe('PhotoCard', () => {
     expect(card).toHaveAttribute('draggable', 'true');
   });
 
+  it('hides rank when showRank is false', () => {
+    render(<PhotoCard photo={basePhoto} showRank={false} />);
+
+    expect(screen.queryByText('3')).not.toBeInTheDocument();
+  });
+
   it('does not add draggable attributes when draggable prop is false', () => {
     const { container } = render(<PhotoCard photo={basePhoto} />);
 

@@ -46,6 +46,34 @@ body {
   background: #5a4bd1;
 }
 
+/* Nav Bar */
+.nav-bar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid #2d2d44;
+}
+
+.nav-tab {
+  padding: 8px 20px;
+  background: transparent;
+  color: #888;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.nav-tab:hover {
+  color: #b0b0c0;
+}
+
+.nav-tab.active {
+  color: #fff;
+  border-bottom-color: #6c5ce7;
+}
+
 /* Filter Bar */
 .filter-bar {
   position: sticky;

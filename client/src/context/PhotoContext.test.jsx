@@ -28,6 +28,7 @@ function TestConsumer({ onContext }) {
       <span data-testid="filterTag">{ctx.filterTag}</span>
       <span data-testid="searchQuery">{ctx.searchQuery}</span>
       <span data-testid="hideClaimed">{String(ctx.hideClaimed)}</span>
+      <span data-testid="viewMode">{ctx.viewMode}</span>
       <span data-testid="selectedPhoto">{ctx.selectedPhoto ? ctx.selectedPhoto.id : 'null'}</span>
     </div>
   );
@@ -179,6 +180,60 @@ describe('PhotoProvider', () => {
 
     expect(api.triggerScan).toHaveBeenCalled();
     expect(api.fetchPhotos).toHaveBeenCalled();
+  });
+
+  it('defaults viewMode to rank', async () => {
+    renderWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('viewMode').textContent).toBe('rank');
+    });
+  });
+
+  it('reloads with sort=show_id when setViewMode is called with showId', async () => {
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    api.fetchPhotos.mockClear();
+
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
+  });
+
+  it('omits tag and search params in showId mode', async () => {
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    // Set filter and search first
+    await act(() => {
+      ctx.current.setFilterTag('love');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ tag: 'love', hideClaimed: true });
+    });
+
+    api.fetchPhotos.mockClear();
+
+    // Switch to showId mode — should not include tag or search
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
   });
 
   it('setSelectedPhoto updates selectedPhoto state', async () => {
