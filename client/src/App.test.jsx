@@ -19,28 +19,16 @@ vi.mock('./components/NavBar.jsx', () => ({
   default: () => <div data-testid="nav-bar" />,
 }));
 
-vi.mock('./components/FilterBar.jsx', () => ({
-  default: ({ showTagFilters }) => (
-    <div data-testid="filter-bar" data-show-tag-filters={String(showTagFilters)} />
-  ),
+vi.mock('./components/RankPage.jsx', () => ({
+  default: () => <div data-testid="rank-page" />,
 }));
 
-vi.mock('./components/PhotoGrid.jsx', () => ({
-  default: ({ photos, draggable }) => (
-    <div data-testid="photo-grid" data-count={photos.length} data-draggable={String(draggable)} />
-  ),
+vi.mock('./components/ShowIdPage.jsx', () => ({
+  default: () => <div data-testid="showid-page" />,
 }));
 
-vi.mock('./components/TagGroup.jsx', () => ({
-  default: ({ tag, photos }) => (
-    <div data-testid={`tag-group-${tag}`} data-count={photos.length} />
-  ),
-}));
-
-vi.mock('./components/UnratedSection.jsx', () => ({
-  default: ({ photos }) => (
-    <div data-testid="unrated-section" data-count={photos.length} />
-  ),
+vi.mock('./components/UserMenu.jsx', () => ({
+  default: () => <div data-testid="user-menu" />,
 }));
 
 vi.mock('./components/PhotoModal.jsx', () => ({
@@ -51,21 +39,10 @@ vi.mock('./components/SubmitModal.jsx', () => ({
   default: () => <div data-testid="submit-modal" />,
 }));
 
-const mixedPhotos = [
-  { id: 1, tag: 'love' },
-  { id: 2, tag: 'love' },
-  { id: 3, tag: 'like' },
-  { id: 4, tag: 'meh' },
-  { id: 5, tag: 'tax_deduction' },
-  { id: 6, tag: 'unrated' },
-  { id: 7, tag: 'unrated' },
-];
-
 const baseContext = {
-  photos: mixedPhotos,
+  photos: [{ id: 1 }],
   scanPhotos: vi.fn(),
   loading: false,
-  filterTag: 'all',
   viewMode: 'rank',
 };
 
@@ -80,31 +57,26 @@ beforeEach(() => {
 });
 
 describe('App layout', () => {
-  it('renders all tag groups when filterTag is "all"', () => {
+  it('renders NavBar and UserMenu', () => {
     render(<App />);
 
-    expect(screen.getByTestId('tag-group-love')).toHaveAttribute('data-count', '2');
-    expect(screen.getByTestId('tag-group-like')).toHaveAttribute('data-count', '1');
-    expect(screen.getByTestId('tag-group-meh')).toHaveAttribute('data-count', '1');
-    expect(screen.getByTestId('tag-group-tax_deduction')).toHaveAttribute('data-count', '1');
-    expect(screen.getByTestId('unrated-section')).toHaveAttribute('data-count', '2');
+    expect(screen.getByTestId('nav-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('user-menu')).toBeInTheDocument();
   });
 
-  it('renders single TagGroup when a specific tag filter is active', () => {
-    usePhotos.mockReturnValue({ ...baseContext, filterTag: 'love' });
+  it('renders RankPage when viewMode is rank', () => {
     render(<App />);
 
-    expect(screen.getByTestId('tag-group-love')).toBeInTheDocument();
-    expect(screen.queryByTestId('tag-group-like')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('unrated-section')).not.toBeInTheDocument();
+    expect(screen.getByTestId('rank-page')).toBeInTheDocument();
+    expect(screen.queryByTestId('showid-page')).not.toBeInTheDocument();
   });
 
-  it('renders UnratedSection when filterTag is "unrated"', () => {
-    usePhotos.mockReturnValue({ ...baseContext, filterTag: 'unrated' });
+  it('renders ShowIdPage when viewMode is showId', () => {
+    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
     render(<App />);
 
-    expect(screen.getByTestId('unrated-section')).toBeInTheDocument();
-    expect(screen.queryByTestId('tag-group-love')).not.toBeInTheDocument();
+    expect(screen.getByTestId('showid-page')).toBeInTheDocument();
+    expect(screen.queryByTestId('rank-page')).not.toBeInTheDocument();
   });
 
   it('shows loading message when loading with no photos', () => {
@@ -128,62 +100,28 @@ describe('App layout', () => {
     expect(screen.queryByText(/No photos found/)).not.toBeInTheDocument();
   });
 
-  it('passes all photos to TagGroup when filtering a specific tag', () => {
-    usePhotos.mockReturnValue({ ...baseContext, filterTag: 'like' });
+  it('renders PhotoModal and SubmitModal', () => {
     render(<App />);
 
-    // When filtered, TagGroup receives the full photos array (API already filters)
-    expect(screen.getByTestId('tag-group-like')).toHaveAttribute('data-count', '7');
-  });
-});
-
-describe('View mode: showId', () => {
-  it('renders flat PhotoGrid with FilterBar (no tag filters) when viewMode is showId', () => {
-    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
-    render(<App />);
-
-    expect(screen.getByTestId('photo-grid')).toBeInTheDocument();
-    expect(screen.getByTestId('photo-grid')).toHaveAttribute('data-draggable', 'false');
-    expect(screen.getByTestId('filter-bar')).toHaveAttribute('data-show-tag-filters', 'false');
-    expect(screen.queryByTestId('tag-group-love')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('unrated-section')).not.toBeInTheDocument();
-  });
-
-  it('passes all photos to PhotoGrid in showId mode', () => {
-    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
-    render(<App />);
-
-    expect(screen.getByTestId('photo-grid')).toHaveAttribute('data-count', '7');
-  });
-
-  it('renders NavBar in both view modes', () => {
-    render(<App />);
-    expect(screen.getByTestId('nav-bar')).toBeInTheDocument();
-
-    cleanup();
-    usePhotos.mockReturnValue({ ...baseContext, viewMode: 'showId' });
-    render(<App />);
-    expect(screen.getByTestId('nav-bar')).toBeInTheDocument();
-  });
-
-  it('renders FilterBar with tag filters in rank mode', () => {
-    render(<App />);
-    expect(screen.getByTestId('filter-bar')).toHaveAttribute('data-show-tag-filters', 'true');
+    expect(screen.getByTestId('photo-modal')).toBeInTheDocument();
+    expect(screen.getByTestId('submit-modal')).toBeInTheDocument();
   });
 });
 
 describe('Admin vs regular user', () => {
-  it('shows Scan Photos button for admin users', () => {
+  it('shows Scan Photos and Users buttons for admin users', () => {
     render(<App />);
 
     expect(screen.getByText('Scan Photos')).toBeInTheDocument();
+    expect(screen.getByText('Users')).toBeInTheDocument();
   });
 
-  it('hides Scan Photos button for non-admin users', () => {
+  it('hides Scan Photos and Users buttons for non-admin users', () => {
     useAuth.mockReturnValue({ user: regularUser, logout: vi.fn() });
     render(<App />);
 
     expect(screen.queryByText('Scan Photos')).not.toBeInTheDocument();
+    expect(screen.queryByText('Users')).not.toBeInTheDocument();
   });
 
   it('shows Submit to Show button for all users', () => {
@@ -191,19 +129,5 @@ describe('Admin vs regular user', () => {
     render(<App />);
 
     expect(screen.getByText('Submit to Show')).toBeInTheDocument();
-  });
-
-  it('displays avatar with first initial and username in dropdown', async () => {
-    const user = (await import('@testing-library/user-event')).default;
-    const u = user.setup();
-    render(<App />);
-
-    const avatar = screen.getByTitle('admin');
-    expect(avatar).toHaveTextContent('A');
-
-    await u.click(avatar);
-
-    expect(screen.getByText('admin')).toBeInTheDocument();
-    expect(screen.getByText('Log Out')).toBeInTheDocument();
   });
 });
