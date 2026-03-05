@@ -19,12 +19,12 @@ describe('TAG_PRIORITY', () => {
 describe('tagPrioritySQL', () => {
   it('generates a CASE expression with default column', () => {
     const sql = tagPrioritySQL();
-    assert.ok(sql.includes("CASE tag WHEN 'love' THEN 1"));
-    assert.ok(sql.includes("WHEN 'tax_deduction' THEN 4 END"));
+    assert.ok(sql.includes('CASE tag WHEN \'love\' THEN 1'));
+    assert.ok(sql.includes('WHEN \'tax_deduction\' THEN 4 END'));
   });
 
   it('accepts a custom column name', () => {
     const sql = tagPrioritySQL('p2.tag');
-    assert.ok(sql.includes("CASE p2.tag WHEN 'love' THEN 1"));
+    assert.ok(sql.includes('CASE p2.tag WHEN \'love\' THEN 1'));
   });
 });

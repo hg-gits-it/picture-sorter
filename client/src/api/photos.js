@@ -136,7 +136,7 @@ export async function triggerScan() {
 
 
 // Submit API
-export async function startSubmit(codename, { onMessage, onError, signal }) {
+export async function startSubmit(codename, { onMessage, signal }) {
   const res = await fetch(`${API_BASE}/submit`, {
     ...fetchOpts,
     method: 'POST',
