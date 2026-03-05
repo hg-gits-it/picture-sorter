@@ -193,8 +193,15 @@ describe('Admin vs regular user', () => {
     expect(screen.getByText('Submit to Show')).toBeInTheDocument();
   });
 
-  it('displays username and logout button', () => {
+  it('displays avatar with first initial and username in dropdown', async () => {
+    const user = (await import('@testing-library/user-event')).default;
+    const u = user.setup();
     render(<App />);
+
+    const avatar = screen.getByTitle('admin');
+    expect(avatar).toHaveTextContent('A');
+
+    await u.click(avatar);
 
     expect(screen.getByText('admin')).toBeInTheDocument();
     expect(screen.getByText('Log Out')).toBeInTheDocument();

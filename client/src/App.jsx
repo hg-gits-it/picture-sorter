@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PhotoProvider, usePhotos } from './context/PhotoContext.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 import NavBar from './components/NavBar.jsx';
@@ -15,6 +15,19 @@ function AppContent() {
   const { user, logout } = useAuth();
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
   const [userMgmtOpen, setUserMgmtOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handleClick = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [userMenuOpen]);
 
   const lovePhotos = photos.filter((p) => p.tag === 'love');
   const likePhotos = photos.filter((p) => p.tag === 'like');
@@ -49,10 +62,23 @@ function AppContent() {
           >
             Submit to Show
           </button>
-          <span className="user-info">{user.username}</span>
-          <button className="logout-btn" onClick={logout}>
-            Log Out
-          </button>
+          <div className="user-menu" ref={userMenuRef}>
+            <button
+              className="user-avatar"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              title={user.username}
+            >
+              {user.username.charAt(0).toUpperCase()}
+            </button>
+            {userMenuOpen && (
+              <div className="user-menu-dropdown">
+                <div className="user-menu-name">{user.username}</div>
+                <button className="user-menu-logout" onClick={logout}>
+                  Log Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
