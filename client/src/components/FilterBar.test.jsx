@@ -14,7 +14,7 @@ const defaultContext = {
   setFilterTag: vi.fn(),
   searchQuery: '',
   setSearchQuery: vi.fn(),
-  counts: { total: 10, love: 3, like: 2, meh: 1, tax_deduction: 1, unrated: 3 },
+  counts: { total: 10, love: 3, like: 2, meh: 1, pass: 1, unrated: 3 },
   hideClaimed: true,
   setHideClaimed: vi.fn(),
 };
@@ -33,7 +33,7 @@ describe('FilterBar', () => {
     expect(screen.getByText('Love')).toBeInTheDocument();
     expect(screen.getByText('Like')).toBeInTheDocument();
     expect(screen.getByText('Meh')).toBeInTheDocument();
-    expect(screen.getByText('Tax Deduction')).toBeInTheDocument();
+    expect(screen.getByText('Pass')).toBeInTheDocument();
     expect(screen.getByText('Unrated')).toBeInTheDocument();
 
     // Check counts are rendered
@@ -123,7 +123,7 @@ describe('FilterBar', () => {
   it('shows 0 for missing count keys', () => {
     usePhotos.mockReturnValue({
       ...defaultContext,
-      counts: { total: 5, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 5 },
+      counts: { total: 5, love: 0, like: 0, meh: 0, pass: 0, unrated: 5 },
     });
     render(<FilterBar />);
 

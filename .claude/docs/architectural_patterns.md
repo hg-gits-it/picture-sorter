@@ -43,7 +43,7 @@ Reordering uses the browser's native drag-and-drop API with `useRef` to track th
 
 ## Tag Priority System: Computed at Query Time
 
-Tags have a fixed priority order: love(1) > like(2) > meh(3) > tax_deduction(4) > unrated(5). Global rank is computed in SQL using nested CASE expressions rather than stored (`server/routes/photos.js:38-51`). This avoids stale rank data and keeps the source of truth in one place.
+Tags have a fixed priority order: love(1) > like(2) > meh(3) > pass(4) > unrated(5). Global rank is computed in SQL using nested CASE expressions rather than stored (`server/routes/photos.js:38-51`). This avoids stale rank data and keeps the source of truth in one place.
 
 When changing tags, the direction matters: demoting (higher to lower priority) inserts at position 1; promoting or newly rating appends to the end (`server/routes/photos.js:110-132`).
 

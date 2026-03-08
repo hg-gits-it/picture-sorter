@@ -10,7 +10,7 @@ export default function RankPage() {
   const lovePhotos = photos.filter((p) => p.tag === 'love');
   const likePhotos = photos.filter((p) => p.tag === 'like');
   const mehPhotos = photos.filter((p) => p.tag === 'meh');
-  const taxDeductionPhotos = photos.filter((p) => p.tag === 'tax_deduction');
+  const passPhotos = photos.filter((p) => p.tag === 'pass');
   const unratedPhotos = photos.filter((p) => p.tag === 'unrated');
 
   const showGrouped = filterTag === 'all';
@@ -23,7 +23,7 @@ export default function RankPage() {
           <TagGroup tag="love" photos={lovePhotos} />
           <TagGroup tag="like" photos={likePhotos} />
           <TagGroup tag="meh" photos={mehPhotos} />
-          <TagGroup tag="tax_deduction" photos={taxDeductionPhotos} />
+          <TagGroup tag="pass" photos={passPhotos} />
           <UnratedSection photos={unratedPhotos} />
         </>
       ) : filterTag === 'unrated' ? (

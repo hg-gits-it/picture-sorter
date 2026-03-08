@@ -13,7 +13,7 @@ vi.mock('../api/photos.js', () => ({
 
 const defaultResponse = {
   photos: [{ id: 1, filename: 'test.jpg', tag: null }],
-  counts: { total: 1, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 1 },
+  counts: { total: 1, love: 0, like: 0, meh: 0, pass: 0, unrated: 1 },
 };
 
 function TestConsumer({ onContext }) {
@@ -79,7 +79,7 @@ describe('PhotoProvider', () => {
 
     api.fetchPhotos.mockResolvedValue({
       photos: [{ id: 2 }],
-      counts: { total: 1, love: 1, like: 0, meh: 0, tax_deduction: 0, unrated: 0 },
+      counts: { total: 1, love: 1, like: 0, meh: 0, pass: 0, unrated: 0 },
     });
 
     await act(() => {
@@ -154,7 +154,7 @@ describe('PhotoProvider', () => {
         { id: 1, filename: 'a.jpg', tag: 'unrated' },
         { id: 2, filename: 'b.jpg', tag: 'unrated' },
       ],
-      counts: { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 },
+      counts: { total: 0, love: 0, like: 0, meh: 0, pass: 0, unrated: 0 },
     });
 
     const { ctx } = renderWithProvider();

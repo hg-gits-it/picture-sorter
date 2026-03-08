@@ -31,7 +31,7 @@ const mixedPhotos = [
   { id: 2, tag: 'love' },
   { id: 3, tag: 'like' },
   { id: 4, tag: 'meh' },
-  { id: 5, tag: 'tax_deduction' },
+  { id: 5, tag: 'pass' },
   { id: 6, tag: 'unrated' },
   { id: 7, tag: 'unrated' },
 ];
@@ -56,7 +56,7 @@ describe('RankPage', () => {
     expect(screen.getByTestId('tag-group-love')).toHaveAttribute('data-count', '2');
     expect(screen.getByTestId('tag-group-like')).toHaveAttribute('data-count', '1');
     expect(screen.getByTestId('tag-group-meh')).toHaveAttribute('data-count', '1');
-    expect(screen.getByTestId('tag-group-tax_deduction')).toHaveAttribute('data-count', '1');
+    expect(screen.getByTestId('tag-group-pass')).toHaveAttribute('data-count', '1');
     expect(screen.getByTestId('unrated-section')).toHaveAttribute('data-count', '2');
   });
 

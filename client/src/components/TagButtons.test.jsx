@@ -11,7 +11,7 @@ describe('TagButtons', () => {
     expect(screen.getByTitle('Love')).toBeInTheDocument();
     expect(screen.getByTitle('Like')).toBeInTheDocument();
     expect(screen.getByTitle('Meh')).toBeInTheDocument();
-    expect(screen.getByTitle('Tax Deduction')).toBeInTheDocument();
+    expect(screen.getByTitle('Pass')).toBeInTheDocument();
   });
 
   it('marks the active tag button', () => {
@@ -19,7 +19,7 @@ describe('TagButtons', () => {
     expect(screen.getByTitle('Like')).toHaveClass('active');
     expect(screen.getByTitle('Love')).not.toHaveClass('active');
     expect(screen.getByTitle('Meh')).not.toHaveClass('active');
-    expect(screen.getByTitle('Tax Deduction')).not.toHaveClass('active');
+    expect(screen.getByTitle('Pass')).not.toHaveClass('active');
   });
 
   it('calls onTag with the tag key when clicked', async () => {
@@ -39,7 +39,7 @@ describe('TagButtons', () => {
     expect(screen.getByTitle('Love')).toHaveClass('tag-btn', 'love');
     expect(screen.getByTitle('Like')).toHaveClass('tag-btn', 'like');
     expect(screen.getByTitle('Meh')).toHaveClass('tag-btn', 'meh');
-    expect(screen.getByTitle('Tax Deduction')).toHaveClass('tag-btn', 'tax_deduction');
+    expect(screen.getByTitle('Pass')).toHaveClass('tag-btn', 'pass');
   });
 
   it('renders no active button when currentTag is unrated', () => {

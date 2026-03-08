@@ -7,7 +7,7 @@ describe('TAG_PRIORITY', () => {
     assert.equal(TAG_PRIORITY.love, 1);
     assert.equal(TAG_PRIORITY.like, 2);
     assert.equal(TAG_PRIORITY.meh, 3);
-    assert.equal(TAG_PRIORITY.tax_deduction, 4);
+    assert.equal(TAG_PRIORITY.pass, 4);
   });
 
   it('love has highest priority (lowest number)', () => {
@@ -20,7 +20,7 @@ describe('tagPrioritySQL', () => {
   it('generates a CASE expression with default column', () => {
     const sql = tagPrioritySQL();
     assert.ok(sql.includes('CASE tag WHEN \'love\' THEN 1'));
-    assert.ok(sql.includes('WHEN \'tax_deduction\' THEN 4 END'));
+    assert.ok(sql.includes('WHEN \'pass\' THEN 4 END'));
   });
 
   it('accepts a custom column name', () => {

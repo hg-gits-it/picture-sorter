@@ -43,11 +43,32 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL REFERENCES users(id),
     photo_id INTEGER NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
-    tag TEXT CHECK(tag IN ('love','like','meh','tax_deduction','unrated')) DEFAULT 'unrated',
+    tag TEXT CHECK(tag IN ('love','like','meh','pass','unrated')) DEFAULT 'unrated',
     group_position INTEGER DEFAULT NULL,
     UNIQUE(user_id, photo_id)
   )
 `);
+
+// Migration: rename tax_deduction → pass
+const hasTaxDeduction = db.prepare(
+  'SELECT sql FROM sqlite_master WHERE name = \'user_ratings\' AND sql LIKE \'%tax_deduction%\'',
+).get();
+if (hasTaxDeduction) {
+  db.exec(`
+    CREATE TABLE user_ratings_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      photo_id INTEGER NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
+      tag TEXT CHECK(tag IN ('love','like','meh','pass','unrated')) DEFAULT 'unrated',
+      group_position INTEGER DEFAULT NULL,
+      UNIQUE(user_id, photo_id)
+    );
+    INSERT INTO user_ratings_new SELECT * FROM user_ratings;
+    UPDATE user_ratings_new SET tag = 'pass' WHERE tag = 'tax_deduction';
+    DROP TABLE user_ratings;
+    ALTER TABLE user_ratings_new RENAME TO user_ratings;
+  `);
+}
 
 // Prepared query helpers for common operations
 const _getPhotoById = db.prepare('SELECT * FROM photos WHERE id = ?');

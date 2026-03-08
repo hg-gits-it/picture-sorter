@@ -44,7 +44,7 @@ router.get('/', (req, res) => {
     `;
 
     const photos = db.prepare(sql).all(userId, ...whereParams);
-    const counts = { total: 0, love: 0, like: 0, meh: 0, tax_deduction: 0, unrated: 0 };
+    const counts = { total: 0, love: 0, like: 0, meh: 0, pass: 0, unrated: 0 };
     return res.json({ photos, counts });
   }
 
@@ -109,7 +109,7 @@ router.get('/', (req, res) => {
       COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'love' THEN 1 ELSE 0 END), 0) as love,
       COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'like' THEN 1 ELSE 0 END), 0) as 'like',
       COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'meh' THEN 1 ELSE 0 END), 0) as meh,
-      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'tax_deduction' THEN 1 ELSE 0 END), 0) as tax_deduction,
+      COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'pass' THEN 1 ELSE 0 END), 0) as pass,
       COALESCE(SUM(CASE WHEN COALESCE(ur.tag, 'unrated') = 'unrated' THEN 1 ELSE 0 END), 0) as unrated
     FROM photos p
     LEFT JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
@@ -130,7 +130,7 @@ router.patch('/:id/tag', (req, res) => {
   const basePhoto = getPhotoById(id);
   if (!basePhoto) return res.status(404).json({ error: 'Photo not found' });
 
-  const validTags = ['love', 'like', 'meh', 'tax_deduction', 'unrated'];
+  const validTags = ['love', 'like', 'meh', 'pass', 'unrated'];
   if (!validTags.includes(tag)) {
     return res.status(400).json({ error: 'Invalid tag' });
   }

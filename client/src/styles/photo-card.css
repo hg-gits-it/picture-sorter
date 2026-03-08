@@ -199,7 +199,7 @@
   border-color: #3498db;
 }
 
-.tag-btn.tax_deduction.active {
+.tag-btn.pass.active {
   background: rgba(39, 174, 96, 0.2);
   border-color: #7f8c8d;
 }

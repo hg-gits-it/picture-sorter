@@ -70,7 +70,7 @@ client/src/
 
 ## Tag System
 
-Five tag values with priority ordering for global rank: `love`(1) > `like`(2) > `meh`(3) > `tax_deduction`(4) > `unrated`(no rank).
+Five tag values with priority ordering for global rank: `love`(1) > `like`(2) > `meh`(3) > `pass`(4) > `unrated`(no rank).
 
 Global rank is computed at query time via SQL CASE expressions in `server/routes/photos.js:38-51` — not stored. `group_position` tracks order within each tag group. Tag mutations use transactions to recompact positions (`server/routes/photos.js:96-143`).
 

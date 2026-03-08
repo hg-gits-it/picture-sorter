@@ -50,10 +50,10 @@ describe('TagGroup', () => {
     expect(screen.getByText('Meh')).toBeInTheDocument();
   });
 
-  it('renders correct heading for tax_deduction tag', () => {
-    render(<TagGroup tag="tax_deduction" photos={photos} />);
+  it('renders correct heading for pass tag', () => {
+    render(<TagGroup tag="pass" photos={photos} />);
 
-    expect(screen.getByText('Tax Deduction')).toBeInTheDocument();
+    expect(screen.getByText('Pass')).toBeInTheDocument();
   });
 
   it('passes photos and draggable=true to PhotoGrid', () => {

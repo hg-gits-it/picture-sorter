@@ -237,9 +237,9 @@ describe('getSubmittablePhotos', () => {
     assert.equal(photos[2].tag, 'meh');
   });
 
-  it('excludes tax_deduction and unrated photos', () => {
+  it('excludes pass and unrated photos', () => {
     insertPhoto({ filename: 'love.jpg', tag: 'love', group_position: 1, show_id: '1' });
-    insertPhoto({ filename: 'tax.jpg', tag: 'tax_deduction', group_position: 1, show_id: '2' });
+    insertPhoto({ filename: 'tax.jpg', tag: 'pass', group_position: 1, show_id: '2' });
     insertPhoto({ filename: 'unrated.jpg', show_id: '3' });
 
     const photos = getSubmittablePhotos(1);
@@ -471,7 +471,7 @@ describe('GET /api/submit', () => {
     });
     insertPhoto({
       filename: '040--a--t--oil--1x1_d_o.jpg',
-      tag: 'tax_deduction',
+      tag: 'pass',
       group_position: 1,
       show_id: '040',
     });
