@@ -184,8 +184,10 @@ Resources:
         echo "$GHCR_TOKEN" | docker login ghcr.io -u gha --password-stdin
         docker pull ghcr.io/hg-gits-it/picture-sorter:latest
 
-        # Ensure data dir is writable by the non-root container user (UID 1001)
+        # Ensure data/thumbnails dirs are writable by the non-root container user (UID 1001)
+        # Keep /mnt/data/photos owned by ubuntu so rsync uploads work without sudo
         chown -R 1001:1001 /mnt/data
+        chown -R ubuntu:ubuntu /mnt/data/photos
 
         docker run -d \
           --name picture-sorter \
