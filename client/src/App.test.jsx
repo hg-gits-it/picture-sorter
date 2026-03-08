@@ -39,6 +39,10 @@ vi.mock('./components/SubmitModal.jsx', () => ({
   default: () => <div data-testid="submit-modal" />,
 }));
 
+vi.mock('./components/ScrollArrows.jsx', () => ({
+  default: () => <div data-testid="scroll-arrows" />,
+}));
+
 const baseContext = {
   photos: [{ id: 1 }],
   scanPhotos: vi.fn(),
@@ -105,6 +109,12 @@ describe('App layout', () => {
 
     expect(screen.getByTestId('photo-modal')).toBeInTheDocument();
     expect(screen.getByTestId('submit-modal')).toBeInTheDocument();
+  });
+
+  it('renders ScrollArrows', () => {
+    render(<App />);
+
+    expect(screen.getByTestId('scroll-arrows')).toBeInTheDocument();
   });
 });
 

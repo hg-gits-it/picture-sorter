@@ -7,6 +7,7 @@ import ShowIdPage from './components/ShowIdPage.jsx';
 import UserMenu from './components/UserMenu.jsx';
 import PhotoModal from './components/PhotoModal.jsx';
 import SubmitModal from './components/SubmitModal.jsx';
+import ScrollArrows from './components/ScrollArrows.jsx';
 import UserManagement from './components/UserManagement.jsx';
 
 function AppContent() {
@@ -63,6 +64,7 @@ function AppContent() {
 
       </main>
 
+      <ScrollArrows />
       <PhotoModal />
       <SubmitModal
         open={submitModalOpen}

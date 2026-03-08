@@ -325,37 +325,3 @@
   color: #fff;
 }
 
-/* Showtime Nav Arrows */
-.showtime-nav-arrows {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 500;
-}
-
-.showtime-nav-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #2d2d44;
-  color: #b0b0c0;
-  border: 1px solid #3d3d55;
-  font-size: 1.3rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background 0.2s,
-    color 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.showtime-nav-btn:hover {
-  background: #6c5ce7;
-  color: #fff;
-}

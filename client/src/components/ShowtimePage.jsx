@@ -12,6 +12,7 @@ import {
   thumbnailUrl,
   fullImageUrl,
 } from '../api/photos.js';
+import ScrollArrows from './ScrollArrows.jsx';
 import '../styles/showtime.css';
 
 export default function ShowtimePage() {
@@ -199,26 +200,7 @@ export default function ShowtimePage() {
         </section>
       )}
 
-      <div className="showtime-nav-arrows">
-        <button
-          className="showtime-nav-btn"
-          title="Scroll to top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          &#x2191;
-        </button>
-        {takenPhotos.length > 0 && (
-          <button
-            className="showtime-nav-btn"
-            title="Scroll to Taken"
-            onClick={() =>
-              takenRef.current?.scrollIntoView({ behavior: 'smooth' })
-            }
-          >
-            &#x2193;
-          </button>
-        )}
-      </div>
+      <ScrollArrows downRef={takenRef} />
 
       {confirmPhoto && (
         <div className="modal-overlay" onClick={() => setConfirmPhoto(null)}>
