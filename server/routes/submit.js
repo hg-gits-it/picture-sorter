@@ -130,7 +130,7 @@ function getSubmittablePhotos(userId) {
            ur.tag, ur.group_position
     FROM photos p
     INNER JOIN user_ratings ur ON ur.photo_id = p.id AND ur.user_id = ?
-    WHERE ur.tag IN ('love', 'like', 'meh')
+    WHERE ur.tag IN ('love', 'like', 'meh', 'pass')
     ORDER BY
       ${tagPrioritySQL('ur.tag')},
       ur.group_position

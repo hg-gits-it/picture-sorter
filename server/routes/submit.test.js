@@ -237,14 +237,15 @@ describe('getSubmittablePhotos', () => {
     assert.equal(photos[2].tag, 'meh');
   });
 
-  it('excludes pass and unrated photos', () => {
+  it('excludes unrated photos but includes pass', () => {
     insertPhoto({ filename: 'love.jpg', tag: 'love', group_position: 1, show_id: '1' });
-    insertPhoto({ filename: 'tax.jpg', tag: 'pass', group_position: 1, show_id: '2' });
+    insertPhoto({ filename: 'pass.jpg', tag: 'pass', group_position: 1, show_id: '2' });
     insertPhoto({ filename: 'unrated.jpg', show_id: '3' });
 
     const photos = getSubmittablePhotos(1);
-    assert.equal(photos.length, 1);
+    assert.equal(photos.length, 2);
     assert.equal(photos[0].tag, 'love');
+    assert.equal(photos[1].tag, 'pass');
   });
 
   it('orders by group_position within same tag', () => {
@@ -450,7 +451,7 @@ describe('GET /api/submit', () => {
     assert.match(doneEvent.message, /1 artworks/);
   });
 
-  it('only submits love, like, and meh photos in priority order', async () => {
+  it('only submits love, like, meh, and pass photos in priority order', async () => {
     insertPhoto({
       filename: '030--a--t--oil--1x1_c_o.jpg',
       tag: 'meh',
@@ -508,8 +509,8 @@ describe('GET /api/submit', () => {
         res.on('end', () => cb(null, data));
       });
 
-    assert.equal(addedShowIds.length, 3);
-    assert.deepEqual(addedShowIds, ['010', '020', '030']);
+    assert.equal(addedShowIds.length, 4);
+    assert.deepEqual(addedShowIds, ['010', '020', '030', '040']);
   });
 
   it('streams error when external fetch throws', async () => {
