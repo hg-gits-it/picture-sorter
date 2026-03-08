@@ -1,6 +1,6 @@
 # Art Sorter
 
-A photo sorting app for ranking and organizing artwork for the Patrons' Art Show. Tag artwork with ratings, drag-and-drop to reorder within groups, and submit final rankings to the show website.
+A photo sorting app for ranking and organizing artwork. Tag artwork with ratings, drag-and-drop to reorder within groups, and submit final rankings to the show website.
 
 ## Tech Stack
 
