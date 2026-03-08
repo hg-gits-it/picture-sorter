@@ -484,6 +484,41 @@ describe('PATCH /api/photos/:id/reorder', () => {
       .expect(404);
   });
 
+  it('clamps position to max when exceeding group size', async () => {
+    const id1 = insertPhoto({
+      filename: 'a.jpg',
+      tag: 'love',
+      group_position: 1,
+    });
+    const id2 = insertPhoto({
+      filename: 'b.jpg',
+      tag: 'love',
+      group_position: 2,
+    });
+    const id3 = insertPhoto({
+      filename: 'c.jpg',
+      tag: 'love',
+      group_position: 3,
+    });
+
+    const res = await request(app)
+      .patch(`/api/photos/${id1}/reorder`)
+      .send({ newPosition: 25 })
+      .expect(200);
+
+    // Should be clamped to 3 (max position in the group)
+    assert.equal(res.body.group_position, 3);
+
+    const p2 = db
+      .prepare('SELECT group_position FROM user_ratings WHERE user_id = 1 AND photo_id = ?')
+      .get(id2);
+    const p3 = db
+      .prepare('SELECT group_position FROM user_ratings WHERE user_id = 1 AND photo_id = ?')
+      .get(id3);
+    assert.equal(p2.group_position, 1);
+    assert.equal(p3.group_position, 2);
+  });
+
   it('returns 400 for unrated photo', async () => {
     const id = insertPhoto({ filename: 'a.jpg' });
 

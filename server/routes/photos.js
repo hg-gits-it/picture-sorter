@@ -211,26 +211,35 @@ router.patch('/:id/reorder', (req, res) => {
   }
 
   const oldPosition = rating.group_position;
-  if (oldPosition === newPosition) {
+
+  const maxPos = db
+    .prepare(
+      'SELECT COALESCE(MAX(group_position), 0) as max_pos FROM user_ratings WHERE user_id = ? AND tag = ?',
+    )
+    .get(userId, rating.tag).max_pos;
+
+  const clampedPosition = Math.min(newPosition, maxPos);
+
+  if (oldPosition === clampedPosition) {
     return res.json(getUserPhoto(userId, id));
   }
 
   const reorder = db.transaction(() => {
-    if (newPosition > oldPosition) {
+    if (clampedPosition > oldPosition) {
       db.prepare(
         `UPDATE user_ratings SET group_position = group_position - 1
          WHERE user_id = ? AND tag = ? AND group_position > ? AND group_position <= ?`,
-      ).run(userId, rating.tag, oldPosition, newPosition);
+      ).run(userId, rating.tag, oldPosition, clampedPosition);
     } else {
       db.prepare(
         `UPDATE user_ratings SET group_position = group_position + 1
          WHERE user_id = ? AND tag = ? AND group_position >= ? AND group_position < ?`,
-      ).run(userId, rating.tag, newPosition, oldPosition);
+      ).run(userId, rating.tag, clampedPosition, oldPosition);
     }
 
     db.prepare(
       'UPDATE user_ratings SET group_position = ? WHERE user_id = ? AND photo_id = ?',
-    ).run(newPosition, userId, id);
+    ).run(clampedPosition, userId, id);
   });
 
   reorder();
