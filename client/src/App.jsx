@@ -53,13 +53,14 @@ function AppContent() {
           <div className="loading">Loading photos...</div>
         )}
 
+        {viewMode === 'showId' ? <ShowIdPage /> : <RankPage />}
+
         {!loading && photos.length === 0 && (
           <div className="empty-state">
-            No photos found. Click &quot;Scan Photos&quot;.
+            No photos found.
           </div>
         )}
 
-        {viewMode === 'showId' ? <ShowIdPage /> : <RankPage />}
       </main>
 
       <PhotoModal />
