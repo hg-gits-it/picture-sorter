@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Outer frame -->
+  <rect x="4" y="4" width="56" height="56" rx="3" stroke="#c8a96e" stroke-width="4" fill="#2d2d44"/>
+  <!-- Inner frame border -->
+  <rect x="10" y="10" width="44" height="44" rx="1" stroke="#a08040" stroke-width="1.5" fill="#1a1a2e"/>
+  <!-- Mountains -->
+  <polygon points="12,46 24,24 36,46" fill="#6c5ce7"/>
+  <polygon points="28,46 38,28 52,46" fill="#5a4bd1"/>
+  <!-- Sun -->
+  <circle cx="44" cy="20" r="6" fill="#f9ca24"/>
+  <!-- Ground line -->
+  <line x1="12" y1="46" x2="52" y2="46" stroke="#4a4a6a" stroke-width="1"/>
+</svg>

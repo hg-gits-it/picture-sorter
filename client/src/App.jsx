@@ -18,7 +18,10 @@ function AppContent() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Art Sorter</h1>
+        <h1>
+          <img src="/logo.svg" alt="" className="app-logo" />
+          Art Sorter
+        </h1>
         <div className="header-actions">
           {user.isAdmin && (
             <>
