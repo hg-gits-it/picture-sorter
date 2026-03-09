@@ -50,11 +50,11 @@ function AppContent() {
       <NavBar />
 
       <main className="app-main">
+        {viewMode === 'showId' ? <ShowIdPage /> : <RankPage />}
+
         {loading && photos.length === 0 && (
           <div className="loading">Loading photos...</div>
         )}
-
-        {viewMode === 'showId' ? <ShowIdPage /> : <RankPage />}
 
         {!loading && photos.length === 0 && (
           <div className="empty-state">
