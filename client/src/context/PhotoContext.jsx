@@ -43,7 +43,10 @@ function reducer(state, action) {
 }
 
 export function PhotoProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, (init) => ({
+    ...init,
+    viewMode: localStorage.getItem('viewMode') || 'rank',
+  }));
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
@@ -94,6 +97,7 @@ export function PhotoProvider({ children }) {
   }, []);
 
   const setViewMode = useCallback((mode) => {
+    localStorage.setItem('viewMode', mode);
     dispatch({ type: 'SET_VIEW_MODE', mode });
   }, []);
 

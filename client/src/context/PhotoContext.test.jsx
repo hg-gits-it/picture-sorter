@@ -47,6 +47,7 @@ function renderWithProvider() {
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
 });
 
 beforeEach(() => {
@@ -215,6 +216,34 @@ describe('PhotoProvider', () => {
 
     expect(api.triggerScan).toHaveBeenCalled();
     expect(api.fetchPhotos).toHaveBeenCalled();
+  });
+
+  it('reads initial viewMode from localStorage', async () => {
+    localStorage.setItem('viewMode', 'showId');
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('viewMode').textContent).toBe('showId');
+    });
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalledWith({ sort: 'show_id', hideClaimed: true });
+    });
+  });
+
+  it('persists viewMode to localStorage when changed', async () => {
+    const { ctx } = renderWithProvider();
+
+    await waitFor(() => {
+      expect(api.fetchPhotos).toHaveBeenCalled();
+    });
+
+    await act(() => {
+      ctx.current.setViewMode('showId');
+    });
+
+    expect(localStorage.getItem('viewMode')).toBe('showId');
   });
 
   it('defaults viewMode to rank', async () => {
